@@ -1,4 +1,4 @@
-## Linkaro : A browser extension to store and share your social links easily .
+## Linkaro : A browser extension to store and share your social links easily.
 
 ## Working
 
