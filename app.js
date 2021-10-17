@@ -127,3 +127,25 @@ const copyToClipboard = async (urlData) => {
 const showalert = (linkData) => {
   alert(linkData + "copied to clipboard 🔥 ");
 };
+
+const loadAllFromLocalStorage = () => {
+  const gitLinkData = localStorage.getItem("Github");
+  const linkedInLinkData = localStorage.getItem("Linkedin");
+  const twitterLinkData = localStorage.getItem("Twitter");
+  const portfolioLinkData = localStorage.getItem("Portfolio");
+  const emailLinkData = localStorage.getItem("Email");
+  const devLinkData = localStorage.getItem("Dev");
+  const dribbbleLinkData = localStorage.getItem("Dribbble");
+
+  gitLink.value = gitLinkData;
+  linkedInLink.value = linkedInLinkData;
+  twitterLink.value = twitterLinkData;
+  portfolioLink.value = portfolioLinkData;
+  emailLink.value = emailLinkData;
+  devLink.value = devLinkData;
+  dribbbleLink.value = dribbbleLinkData;
+};
+
+// Load values from local storage
+
+document.onload = loadAllFromLocalStorage();
