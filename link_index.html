@@ -6,13 +6,124 @@
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<title>Document</title>
+	<link rel="stylesheet" href="https://unpkg.com/tailwindcss@^2/dist/tailwind.min.css">
+	<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.13.0/css/all.min.css" rel="stylesheet">
 	<link rel="stylesheet" href="./style.css" />
 </head>
 
 <body>
 
+	<main>
+		<div class="flex flex-row items-center justify-center gap-x-2">
+			<i class="fa fa-link mt-2" style="font-size: 20px;"></i>
+			<h2 class=" text-center mt-2">Your Links</h2>
+		</div>
 
-	<script src="./app.js"></script>
+		<div class="links-area m-3">
+
+			<div class="flex flex-row justify-center items-center ">
+				<i class="fab fa-github" style="font-size: 28px;"></i>
+				<input id="Github" type="text"
+					class="w-3/5	ml-4 px-2 py-2 shadow-md rounded-md text-left"
+					placeholder="Github">
+				</input>
+				<button id="gitEditBtn"
+					class="m-2 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md shadow-md">
+					<i class="fas fa-edit"></i>
+					<button id="gitCopyBtn"
+						class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md shadow-md">
+						<i class="fas fa-copy"></i>
+			</div>
+
+			<div class="flex flex-row justify-center items-center ">
+				<i class="fab fa-linkedin" style="font-size: 28px;"></i>
+				<input id="Linkedin" type="text"
+					class="w-3/5 ml-4 px-2 py-2 shadow-md rounded-md text-left"
+					placeholder="Linkedin">
+				</input>
+				<button id="linkedInEditBtn"
+					class="m-2 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md shadow-md">
+					<i class="fas fa-edit"></i>
+					<button id="linkedInCopyBtn"
+						class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md shadow-md">
+						<i class="fas fa-copy"></i>
+			</div>
+
+			<div class="flex flex-row justify-center items-center ">
+				<i class="fab fa-twitter" style="font-size: 28px;"></i>
+				<input id="Twitter" type="text"
+					class="w-3/5 ml-4 px-2 py-2 shadow-md rounded-md text-left"
+					placeholder="Twitter">
+				</input>
+				<button id="twitterEditBtn"
+					class="m-2 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md shadow-md">
+					<i class="fas fa-edit"></i>
+					<button id="twitterCopyBtn"
+						class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md shadow-md">
+						<i class="fas fa-copy"></i>
+			</div>
+
+			<div class="flex flex-row justify-center items-center ">
+				<i class="fas fa-globe" style="font-size: 28px;"></i>
+				<input id="Portfolio" type="text"
+					class="w-3/5 ml-4 px-2 py-2 shadow-md rounded-md text-left"
+					placeholder="Portfolio site">
+				</input>
+				<button id="portfolioEditBtn"
+					class="m-2 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md shadow-md">
+					<i class="fas fa-edit"></i>
+					<button id="portfolioCopyBtn"
+						class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md shadow-md">
+						<i class="fas fa-copy"></i>
+			</div>
+			<div class="flex flex-row justify-center items-center ">
+				<i class="fas fa-envelope" style="font-size: 28px;"></i>
+				<input id="Email" type="text"
+					class="w-3/5 ml-4 px-2 py-2 shadow-md rounded-md text-left" placeholder="Email">
+				</input>
+				<button id="emailEditBtn"
+					class="m-2 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md shadow-md">
+					<i class="fas fa-edit"></i>
+					<button id="emailCopyBtn"
+						class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md shadow-md">
+						<i class="fas fa-copy"></i>
+			</div>
+
+			<div class="flex flex-row justify-center items-center ">
+				<i class="fab fa-dev" style="font-size: 28px;"></i>
+				<input id="Dev" type="text" class="w-3/5 ml-4 px-2 py-2 shadow-md rounded-md text-left"
+					placeholder="Dev.to">
+				</input>
+				<button id="devEditBtn"
+					class="m-2 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md shadow-md">
+					<i class="fas fa-edit"></i>
+					<button id="devCopyBtn"
+						class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md shadow-md">
+						<i class="fas fa-copy"></i>
+			</div>
+
+
+			<div class="flex flex-row justify-center items-center ">
+				<i class="fab fa-dribbble" style="font-size: 28px;"></i>
+				<input id="Dribbble" type="text"
+					class="w-3/5 ml-4 px-2 py-2 shadow-md rounded-md text-left"
+					placeholder="Dribbble">
+				</input>
+				<button id="dribbbleEditBtn"
+					class="m-2 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md shadow-md">
+					<i class="fas fa-edit"></i>
+					<button id="dribbbleCopyBtn"
+						class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md shadow-md">
+						<i class="fas fa-copy"></i>
+			</div>
+
+		</div>
+
+		</div>
+	</main>
+
+
+	<script src=" ./app.js"> </script>
 </body>
 
 </html>
