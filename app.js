@@ -125,7 +125,11 @@ const copyToClipboard = async (urlData) => {
 };
 
 const showalert = (linkData) => {
-  alert(linkData + " copied to clipboard 🔥 ");
+  if (!linkData) {
+    alert("No link to copy ❌ ");
+    return;
+  }
+  alert(linkData + " copied to clipboard ✔  ");
 };
 
 const loadAllFromLocalStorage = () => {
