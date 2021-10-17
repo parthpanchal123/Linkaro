@@ -1,4 +1,4 @@
-## Linkaro : Easily store and share your social links .
+## Linkaro : A browser extension to store and share your social links easily .
 
 ## Working
 
@@ -29,3 +29,5 @@
 ![](https://i.imgur.com/xYkV5W1.png)
 
 - Simply select the folder where you cloned the Linkaro folder . The extension should be visible in your browser .
+
+### Do 🌟 the repo if you liked the extension .
