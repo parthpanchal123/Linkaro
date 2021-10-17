@@ -125,7 +125,7 @@ const copyToClipboard = async (urlData) => {
 };
 
 const showalert = (linkData) => {
-  alert(linkData + "copied to clipboard 🔥 ");
+  alert(linkData + " copied to clipboard 🔥 ");
 };
 
 const loadAllFromLocalStorage = () => {
