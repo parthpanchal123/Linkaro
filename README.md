@@ -8,7 +8,7 @@
 
 ## Screenshots
 
-![](https://i.imgur.com/7WKNca2.png)
+![](https://i.imgur.com/ZkkqW1R.png)
 
 ## How to use the extension
 
