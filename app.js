@@ -141,11 +141,13 @@ const showalert = (linkData) => {
 
 const loadAllFromLocalStorage = () => {
   // An array for custom fields
-  let customFields = JSON.parse(localStorage.getItem("customFields"));
+  let customFields = JSON.parse(localStorage.getItem("customFields")) ?? [];
 
-  customFields.forEach((field) => {
-    loadCustomFieldsFromLocalStorage(field);
-  });
+  if (customFields.length != 0) {
+    customFields.forEach((field) => {
+      loadCustomFieldsFromLocalStorage(field);
+    });
+  }
 
   const gitLinkData = localStorage.getItem("Github");
   const linkedInLinkData = localStorage.getItem("Linkedin");
