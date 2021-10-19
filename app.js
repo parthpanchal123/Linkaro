@@ -71,34 +71,23 @@ const renderFieldsFromLocalStorage = ({ newFieldName, isNewField }) => {
     "ml-3"
   );
 
+  const iconsHash = {
+    Github: "fab fa-github",
+    Linkedin: "fab fa-linkedin",
+    Twitter: "fab fa-twitter",
+    Portfolio: "fas fa-globe",
+    Email: "fas fa-envelope",
+    Dev: "fab fa-dev",
+    Dribbble: "fab fa-dribbble",
+  };
+
   const newIcon = document.createElement("i");
   newIcon.style.fontSize = "28px";
 
-  switch (newFieldName) {
-    case "Github":
-      newIcon.classList.add("fab", "fa-github");
-      break;
-    case "Linkedin":
-      newIcon.classList.add("fab", "fa-linkedin");
-      break;
-    case "Twitter":
-      newIcon.classList.add("fab", "fa-twitter");
-      break;
-    case "Portfolio":
-      newIcon.classList.add("fas", "fa-globe");
-      break;
-    case "Email":
-      newIcon.classList.add("fas", "fa-envelope");
-      break;
-    case "Dev":
-      newIcon.classList.add("fab", "fa-dev");
-      break;
-    case "Dribbble":
-      newIcon.classList.add("fab", "fa-dribbble");
-      break;
-    default:
-      newIcon.classList.add("fas", "fa-link");
-      break;
+  if (iconsHash[newFieldName]) {
+    newIcon.classList.add(...iconsHash[newFieldName].split(" "));
+  } else {
+    newIcon.classList.add("fas", "fa-link");
   }
 
   const newEditIcon = document.createElement("i");
