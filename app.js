@@ -18,6 +18,10 @@ const saveToLocalStorage = (key, linkData) => {
  */
 const copyToClipboard = async (urlData) => {
   try {
+    if (!urlData) {
+      alert("No link to copy ❌ ");
+      return;
+    }
     await navigator.clipboard.writeText(urlData);
     showalert(urlData);
   } catch (error) {
@@ -29,10 +33,6 @@ const copyToClipboard = async (urlData) => {
  * @param  {String} linkData The data of the field
  */
 const showalert = (linkData) => {
-  if (!linkData) {
-    alert("No link to copy ❌ ");
-    return;
-  }
   alert(linkData + " copied to clipboard ✔  ");
 };
 
