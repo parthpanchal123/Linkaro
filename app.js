@@ -18,7 +18,8 @@ const saveToLocalStorage = (key, linkData) => {
  */
 const copyToClipboard = async (urlData) => {
   try {
-    await navigator.clipboard.writeText(urlData);
+    if(urlData)
+      await navigator.clipboard.writeText(urlData);
     showalert(urlData);
   } catch (error) {
     alert("Did you give the clipboard permission ?");
