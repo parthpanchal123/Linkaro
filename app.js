@@ -1,192 +1,336 @@
-// Button Refernce for add new field btn
-const addNewBtn = document.getElementById("addNewBtn");
-
-// The div that contains all the fields
-const linksDiv = document.querySelector(".links-area");
-
 /**
- * @param  {String} key The name of the field
- * @param  {String} linkData The data of the field
+ * Linkaro — Main Application
+ * Depends on: firebase-config.js, firebase-db.js
  */
-const saveToLocalStorage = (key, linkData) => {
-  if (!linkData) return;
-  localStorage.setItem(key, linkData);
-};
 
-/**
- * @param  {String} urlData The linkdata of the field
- */
-const copyToClipboard = async (urlData) => {
-  try {
-    if (!urlData) {
-      alert("No link to copy ❌ ");
-      return;
-    }
-    await navigator.clipboard.writeText(urlData);
-    showalert(urlData);
-  } catch (error) {
-    alert("Did you give the clipboard permission ?");
-  }
-};
+// DOM References
+const bubblesArea = document.getElementById("bubblesArea");
+const activeFieldArea = document.getElementById("activeFieldArea");
+const signOutBtn = document.getElementById("signOutBtn");
+const userEmailEl = document.getElementById("userEmail");
+const loadingEl = document.getElementById("loading");
+const toastEl = document.getElementById("toast");
+const searchInput = document.getElementById("searchInput");
 
-/**
- * @param  {String} linkData The data of the field
- */
-const showalert = (linkData) => {
-  alert(linkData + " copied to clipboard ✔  ");
-};
+let currentUser = null;
+let currentFields = [];
+let currentLinks = {};
+let activeField = null;
+let searchQuery = "";
 
-const loadAllFromLocalStorage = () => {
-  const defaultFields = [
-    "Github",
-    "Linkedin",
-    "Twitter",
-    "Portfolio",
-    "Email",
-    "Dev",
-    "Dribbble",
-  ];
-  // An array for custom fields
-  let customFields = JSON.parse(localStorage.getItem("customFields")) ?? [];
+if (searchInput) {
+  searchInput.addEventListener("input", (e) => {
+    searchQuery = e.target.value.toLowerCase();
+    renderAllFields();
+  });
+}
 
-  if (customFields.length != 0) {
-    customFields.forEach((field) => {
-      renderFieldsFromLocalStorage({ newFieldName: field, isNewField: false });
-    });
-  } else {
-    localStorage.setItem("customFields", JSON.stringify(defaultFields));
-  }
-};
-/**
- * @param  {String} newFieldName The name of the field
- * @param  {Boolean} isNewField A boolean to check if the field is new or not
- */
-const renderFieldsFromLocalStorage = ({ newFieldName, isNewField }) => {
-  const newField = document.createElement("div");
-  newField.classList.add(
-    "flex",
-    "flex-row",
-    "justify-center",
-    "items-center",
-    "ml-3"
-  );
-
-  const iconsHash = {
-    Github: "fab fa-github",
-    Linkedin: "fab fa-linkedin",
-    Twitter: "fab fa-twitter",
-    Portfolio: "fas fa-globe",
-    Email: "fas fa-envelope",
-    Dev: "fab fa-dev",
-    Dribbble: "fab fa-dribbble",
+// ===== Icon Map & Dynamic Fetcher =====
+const getIconHTML = (fieldName, url) => {
+  const knownFA = {
+    github: "fab fa-github",
+    linkedin: "fab fa-linkedin",
+    twitter: "fab fa-twitter",
+    portfolio: "fas fa-globe",
+    email: "fas fa-envelope",
+    gmail: "fab fa-google",
+    dev: "fab fa-dev",
+    dribbble: "fab fa-dribbble",
+    instagram: "fab fa-instagram",
+    youtube: "fab fa-youtube",
+    facebook: "fab fa-facebook",
+    reddit: "fab fa-reddit",
+    tiktok: "fab fa-tiktok",
+    twitch: "fab fa-twitch",
+    discord: "fab fa-discord",
+    medium: "fab fa-medium",
+    figma: "fab fa-figma",
+    slack: "fab fa-slack",
+    x: "fab fa-twitter",
+    snapchat: "fab fa-snapchat",
+    pinterest: "fab fa-pinterest"
   };
 
-  const newIcon = document.createElement("i");
-  newIcon.style.fontSize = "28px";
-
-  if (iconsHash[newFieldName]) {
-    newIcon.classList.add(...iconsHash[newFieldName].split(" "));
-  } else {
-    newIcon.classList.add("fas", "fa-link");
+  const lower = fieldName.toLowerCase();
+  
+  if (knownFA[lower]) {
+    return `<i class="${knownFA[lower]}"></i>`;
   }
 
-  const newEditIcon = document.createElement("i");
-  newEditIcon.classList.add("fas", "fa-edit");
-
-  const newCopyIcon = document.createElement("i");
-  newCopyIcon.classList.add("fas", "fa-copy");
-
-  const newFieldInput = document.createElement("input");
-  newFieldInput.classList.add(
-    "w-3/5",
-    "ml-4",
-    "px-2",
-    "py-2",
-    "shadow-md",
-    "rounded-md",
-    "text-left"
-  );
-
-  newFieldInput.setAttribute("placeholder", newFieldName);
-  newFieldInput.setAttribute("id", newFieldName);
-  newFieldInput.value = localStorage.getItem(newFieldName);
-  newFieldInput.setAttribute("type", "text");
-
-  const newFieldEditBtn = document.createElement("button");
-  newFieldEditBtn.classList.add(
-    "m-2",
-    "bg-blue-500",
-    "hover:bg-blue-700",
-    "text-white",
-    "font-bold",
-    "py-2",
-    "px-4",
-    "rounded-md",
-    "shadow-md"
-  );
-  newFieldEditBtn.setAttribute("id", newFieldName + "EditBtn");
-
-  newFieldEditBtn.appendChild(newEditIcon);
-
-  newFieldEditBtn.addEventListener("click", () => {
-    const data = document.getElementById(newFieldName).value;
-    saveToLocalStorage(newFieldName, data);
-  });
-
-  const newFieldCopyBtn = document.createElement("button");
-  newFieldCopyBtn.classList.add(
-    "bg-blue-500",
-    "hover:bg-blue-700",
-    "text-white",
-    "font-bold",
-    "py-2",
-    "px-4",
-    "rounded-md",
-    "shadow-md"
-  );
-
-  newFieldCopyBtn.setAttribute("id", newFieldName + "CopyBtn");
-  newFieldCopyBtn.appendChild(newCopyIcon);
-
-  newFieldCopyBtn.addEventListener("click", () => {
-    const data = document.getElementById(newFieldName).value;
-    copyToClipboard(data);
-  });
-
-  newField.appendChild(newIcon);
-  newField.appendChild(newFieldInput);
-  newField.appendChild(newFieldEditBtn);
-  newField.appendChild(newFieldCopyBtn);
-
-  linksDiv.appendChild(newField);
-
-  if (isNewField) {
-    let existingFields = JSON.parse(localStorage.getItem("customFields"));
-    existingFields.push(newFieldName);
-    localStorage.setItem("customFields", JSON.stringify(existingFields));
+  // Ensure we have a valid domain to query Google Favicon
+  let domain = lower.replace(/[^a-z0-9]/g, "") + ".com";
+  if (url && url.startsWith("http")) {
+    try {
+      domain = new URL(url).hostname;
+    } catch(e) {}
   }
+
+  return `<img src="https://www.google.com/s2/favicons?domain=${domain}&sz=32" style="width:16px;height:16px;border-radius:2px;vertical-align:middle;margin-right:0px;display:inline-block;" onerror="this.outerHTML='<i class=\\'fas fa-link\\'></i>'" />`;
 };
 
-addNewBtn.addEventListener("click", () => {
-  newFieldName = prompt("Enter a new field name");
-  if (!newFieldName) return;
+// ===== Auth State Listener =====
+auth.onAuthStateChanged(async (user) => {
+  if (!user) {
+    window.location.href = "auth.html";
+    return;
+  }
 
-  if (isDuplicateField(newFieldName)) return;
-  renderFieldsFromLocalStorage({ newFieldName, isNewField: true });
+  currentUser = user;
+  userEmailEl.textContent = user.email;
+  showLoading(true);
+
+  try {
+    const data = await initUserData(user.uid);
+    currentFields = data.fields || [];
+    currentLinks = data.links || {};
+
+    // Auto-migrate 'Email' to 'Gmail' across the database automatically
+    if (currentFields.includes("Email")) {
+      const idx = currentFields.indexOf("Email");
+      currentFields[idx] = "Gmail";
+      currentLinks["Gmail"] = currentLinks["Email"] || "";
+      delete currentLinks["Email"];
+      
+      const docRef = db.collection("users").doc(user.uid);
+      await docRef.set({
+        fields: currentFields,
+        links: currentLinks
+      }, { merge: true });
+    }
+
+    renderAllFields();
+  } catch (error) {
+    console.error("Failed to load data:", error);
+    showToast("Failed to load links. Check your connection.");
+  } finally {
+    showLoading(false);
+  }
 });
-/**
- * @param  {String} newLinkName The name of the field
- */
-const isDuplicateField = (newLinkName) => {
-  const links = JSON.parse(localStorage.getItem("customFields"));
 
-  if (!links) return;
+// ===== Rendering =====
+const renderAllFields = () => {
+  bubblesArea.innerHTML = "";
+  activeFieldArea.innerHTML = "";
+  
+  let displayFields = currentFields;
+  if (searchQuery) {
+    displayFields = currentFields.filter((fieldName) => {
+      const matchName = fieldName.toLowerCase().includes(searchQuery);
+      const url = currentLinks[fieldName] || "";
+      const matchUrl = url.toLowerCase().includes(searchQuery);
+      return matchName || matchUrl;
+    });
+  }
 
-  if (links.includes(newLinkName)) {
-    alert("This field already exists");
-    return true;
+  if (displayFields.length > 0) {
+    if (!displayFields.includes(activeField)) {
+      if (displayFields.includes("Gmail")) activeField = "Gmail";
+      else activeField = displayFields[0];
+    }
+  } else {
+    activeField = null; // deselect if filtered out to zero
+  }
+
+  // Render Bubbles
+  displayFields.forEach((fieldName) => {
+    const bubble = document.createElement("button");
+    bubble.classList.add("bubble");
+    if (fieldName === activeField) bubble.classList.add("active");
+    
+    bubble.innerHTML = `${getIconHTML(fieldName, currentLinks[fieldName])} <span class="bubble-text" style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 140px;">${fieldName}</span>`;
+    
+    bubble.addEventListener("click", () => {
+      activeField = fieldName;
+      renderAllFields();
+    });
+    bubblesArea.appendChild(bubble);
+  });
+
+  // Add Button Bubble
+  const addBtn = document.createElement("button");
+  addBtn.classList.add("bubble", "bubble-add");
+  addBtn.innerHTML = `<i class="fas fa-plus"></i> New Link`;
+  addBtn.addEventListener("click", handleAddClick);
+  bubblesArea.appendChild(addBtn);
+
+  // Render Active Field Row
+  if (activeField) {
+    renderActiveRow(activeField, currentLinks[activeField] || "");
+  } else {
+    if (searchQuery) {
+      activeFieldArea.innerHTML = `<div class="info-bar" style="margin-top:20px;">No matches found for "${searchQuery}"</div>`;
+    } else {
+      activeFieldArea.innerHTML = `<div class="info-bar" style="margin-top:20px;">No links yet. Add one above!</div>`;
+    }
   }
 };
 
-// Load all the fields from local storage on startup.
-document.onload = loadAllFromLocalStorage();
+const renderActiveRow = (fieldName, fieldValue) => {
+  activeFieldArea.innerHTML = "";
+  
+  const row = document.createElement("div");
+  row.classList.add("field-row");
+  row.setAttribute("data-field", fieldName);
+
+  // Icon Wrapper
+  const iconWrapper = document.createElement("span");
+  iconWrapper.classList.add("field-icon");
+  iconWrapper.innerHTML = getIconHTML(fieldName, fieldValue);
+
+  // Input
+  const input = document.createElement("input");
+  input.setAttribute("placeholder", "https://url-for-" + fieldName);
+  input.setAttribute("type", "text");
+  input.setAttribute("id", "field-" + fieldName);
+  input.value = fieldValue;
+
+  const inputGroup = document.createElement("div");
+  inputGroup.classList.add("field-input-group");
+  inputGroup.appendChild(iconWrapper);
+  inputGroup.appendChild(input);
+
+  // Save button
+  const saveBtn = document.createElement("button");
+  saveBtn.classList.add("btn-save");
+  saveBtn.innerHTML = '<i class="fas fa-check"></i> Save';
+  saveBtn.title = "Save";
+  saveBtn.addEventListener("click", async () => {
+    const url = input.value.trim();
+    
+    if (!url) {
+      showToast("Link cannot be empty! ❌");
+      input.focus();
+      return;
+    }
+
+    saveBtn.disabled = true;
+    try {
+      await saveLinkToFirestore(currentUser.uid, fieldName, url);
+      currentLinks[fieldName] = url;
+      showToast(fieldName + " saved ✓");
+    } catch (error) {
+      showToast("Failed to save. Try again.");
+    } finally {
+      saveBtn.disabled = false;
+    }
+  });
+
+  // Copy button
+  const copyBtn = document.createElement("button");
+  copyBtn.classList.add("btn-copy");
+  copyBtn.innerHTML = '<i class="fas fa-copy"></i> Copy';
+  copyBtn.title = "Copy to clipboard";
+  copyBtn.addEventListener("click", async () => {
+    const url = input.value;
+    if (!url) {
+      showToast("No link to copy ❌");
+      return;
+    }
+    try {
+      await navigator.clipboard.writeText(url);
+      showToast("Copied: " + url);
+    } catch (error) {
+      showToast("Clipboard permission denied.");
+    }
+  });
+
+  // Delete button
+  const deleteBtn = document.createElement("button");
+  deleteBtn.classList.add("btn-delete");
+  deleteBtn.innerHTML = '<i class="fas fa-trash"></i> Delete';
+  deleteBtn.title = "Delete field";
+  deleteBtn.addEventListener("click", async () => {
+    if (!confirm('Delete "' + fieldName + '"?')) return;
+    deleteBtn.disabled = true;
+    try {
+      await deleteFieldFromFirestore(currentUser.uid, fieldName);
+      currentFields = currentFields.filter((f) => f !== fieldName);
+      delete currentLinks[fieldName];
+      activeField = null; // Forces recalculation of activeField
+      renderAllFields();
+      showToast(fieldName + " deleted");
+    } catch (error) {
+      showToast("Failed to delete. Try again.");
+      deleteBtn.disabled = false;
+    }
+  });
+
+  const actionGroup = document.createElement("div");
+  actionGroup.classList.add("field-actions");
+  
+  const rightActions = document.createElement("div");
+  rightActions.style.display = "flex";
+  rightActions.style.gap = "8px";
+  rightActions.style.marginLeft = "auto";
+  
+  rightActions.appendChild(copyBtn);
+  rightActions.appendChild(saveBtn);
+  
+  actionGroup.appendChild(deleteBtn);
+  actionGroup.appendChild(rightActions);
+
+  row.appendChild(inputGroup);
+  row.appendChild(actionGroup);
+  activeFieldArea.appendChild(row);
+};
+
+// ===== Add New Field =====
+const handleAddClick = async () => {
+  let fieldName = prompt("Enter a link name (e.g. Github, TikTok):");
+  if (!fieldName || !fieldName.trim()) return;
+
+  fieldName = fieldName.trim();
+
+  // Smartly extract domain if user mistakenly pasted a full URL
+  if (fieldName.startsWith("http://") || fieldName.startsWith("https://")) {
+    try {
+      const urlObj = new URL(fieldName);
+      let host = urlObj.hostname.replace(/^www\./i, "");
+      let parts = host.split('.');
+      let cleanName = parts.length > 1 ? parts[parts.length - 2] : parts[0];
+      // Check for two-part TLDs like .co.uk
+      if (['co', 'com', 'org', 'net', 'edu', 'gov'].includes(cleanName.toLowerCase()) && parts.length > 2) {
+          cleanName = parts[parts.length - 3];
+      }
+      fieldName = cleanName.charAt(0).toUpperCase() + cleanName.slice(1);
+    } catch (e) {}
+  }
+
+  if (currentFields.includes(fieldName)) {
+    showToast("This field already exists!");
+    return;
+  }
+
+  try {
+    await addFieldToFirestore(currentUser.uid, fieldName);
+    currentFields.push(fieldName);
+    currentLinks[fieldName] = "";
+    activeField = fieldName;
+    renderAllFields();
+    showToast(fieldName + " added ✓");
+  } catch (error) {
+    showToast("Failed to add field. Try again.");
+  }
+};
+
+// ===== Sign Out =====
+signOutBtn.addEventListener("click", () => {
+  auth.signOut();
+});
+
+// ===== Helpers =====
+const showLoading = (show) => {
+  loadingEl.style.display = show ? "flex" : "none";
+  bubblesArea.style.display = show ? "none" : "flex";
+  activeFieldArea.style.display = show ? "none" : "flex";
+};
+
+let toastTimeout;
+const showToast = (message) => {
+  toastEl.textContent = message;
+  toastEl.classList.add("show");
+  clearTimeout(toastTimeout);
+  toastTimeout = setTimeout(() => {
+    toastEl.classList.remove("show");
+  }, 2500);
+};

@@ -1,0 +1,19 @@
+{
+  "name": "Linkaro",
+  "version": "1.0.0",
+  "manifest_version": 3,
+  "action": {
+    "default_popup": "link_index.html",
+    "default_icon": "link_icon.png"
+  },
+  "permissions": [
+    "identity"
+  ],
+  "oauth2": {
+    "client_id": "YOUR_OAUTH_CLIENT_ID_HERE",
+    "scopes": [
+      "https://www.googleapis.com/auth/userinfo.email",
+      "https://www.googleapis.com/auth/userinfo.profile"
+    ]
+  }
+}
