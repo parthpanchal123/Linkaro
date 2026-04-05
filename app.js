@@ -1,192 +1,186 @@
-// Button Refernce for add new field btn
-const addNewBtn = document.getElementById("addNewBtn");
-
-// The div that contains all the fields
-const linksDiv = document.querySelector(".links-area");
-
 /**
- * @param  {String} key The name of the field
- * @param  {String} linkData The data of the field
+ * Linkaro — Main Application
+ * Depends on: firebase-config.js, firebase-db.js
  */
-const saveToLocalStorage = (key, linkData) => {
-  if (!linkData) return;
-  localStorage.setItem(key, linkData);
+
+// DOM References
+const addNewBtn = document.getElementById("addNewBtn");
+const linksDiv = document.querySelector(".links-area");
+const signOutBtn = document.getElementById("signOutBtn");
+const userEmailEl = document.getElementById("userEmail");
+const loadingEl = document.getElementById("loading");
+const toastEl = document.getElementById("toast");
+
+let currentUser = null;
+let currentFields = [];
+
+// ===== Icon Map =====
+const iconsHash = {
+  Github: "fab fa-github",
+  Linkedin: "fab fa-linkedin",
+  Twitter: "fab fa-twitter",
+  Portfolio: "fas fa-globe",
+  Email: "fas fa-envelope",
+  Dev: "fab fa-dev",
+  Dribbble: "fab fa-dribbble",
 };
 
-/**
- * @param  {String} urlData The linkdata of the field
- */
-const copyToClipboard = async (urlData) => {
+// ===== Auth State Listener =====
+auth.onAuthStateChanged(async (user) => {
+  if (!user) {
+    window.location.href = "auth.html";
+    return;
+  }
+
+  currentUser = user;
+  userEmailEl.textContent = user.email;
+  showLoading(true);
+
   try {
-    if (!urlData) {
-      alert("No link to copy ❌ ");
+    const data = await initUserData(user.uid);
+    currentFields = data.fields || [];
+    renderAllFields(data);
+  } catch (error) {
+    console.error("Failed to load data:", error);
+    showToast("Failed to load links. Check your connection.");
+  } finally {
+    showLoading(false);
+  }
+});
+
+// ===== Rendering =====
+const renderAllFields = (data) => {
+  linksDiv.innerHTML = "";
+  const fields = data.fields || [];
+  const links = data.links || {};
+
+  fields.forEach((fieldName) => {
+    renderField(fieldName, links[fieldName] || "");
+  });
+};
+
+const renderField = (fieldName, fieldValue) => {
+  const row = document.createElement("div");
+  row.classList.add("field-row");
+  row.setAttribute("data-field", fieldName);
+
+  // Icon
+  const icon = document.createElement("i");
+  icon.classList.add("field-icon");
+  const iconClass = iconsHash[fieldName] || "fas fa-link";
+  icon.classList.add(...iconClass.split(" "));
+
+  // Input
+  const input = document.createElement("input");
+  input.setAttribute("placeholder", fieldName);
+  input.setAttribute("type", "text");
+  input.setAttribute("id", "field-" + fieldName);
+  input.value = fieldValue;
+
+  // Save button
+  const saveBtn = document.createElement("button");
+  saveBtn.classList.add("btn-save");
+  saveBtn.innerHTML = '<i class="fas fa-check"></i>';
+  saveBtn.title = "Save";
+  saveBtn.addEventListener("click", async () => {
+    const url = input.value;
+    saveBtn.disabled = true;
+    try {
+      await saveLinkToFirestore(currentUser.uid, fieldName, url);
+      showToast(fieldName + " saved ✓");
+    } catch (error) {
+      showToast("Failed to save. Try again.");
+    } finally {
+      saveBtn.disabled = false;
+    }
+  });
+
+  // Copy button
+  const copyBtn = document.createElement("button");
+  copyBtn.classList.add("btn-copy");
+  copyBtn.innerHTML = '<i class="fas fa-copy"></i>';
+  copyBtn.title = "Copy to clipboard";
+  copyBtn.addEventListener("click", async () => {
+    const url = input.value;
+    if (!url) {
+      showToast("No link to copy ❌");
       return;
     }
-    await navigator.clipboard.writeText(urlData);
-    showalert(urlData);
+    try {
+      await navigator.clipboard.writeText(url);
+      showToast("Copied: " + url);
+    } catch (error) {
+      showToast("Clipboard permission denied.");
+    }
+  });
+
+  // Delete button
+  const deleteBtn = document.createElement("button");
+  deleteBtn.classList.add("btn-delete");
+  deleteBtn.innerHTML = '<i class="fas fa-trash"></i>';
+  deleteBtn.title = "Delete field";
+  deleteBtn.addEventListener("click", async () => {
+    if (!confirm('Delete "' + fieldName + '"?')) return;
+    deleteBtn.disabled = true;
+    try {
+      await deleteFieldFromFirestore(currentUser.uid, fieldName);
+      currentFields = currentFields.filter((f) => f !== fieldName);
+      row.remove();
+      showToast(fieldName + " deleted");
+    } catch (error) {
+      showToast("Failed to delete. Try again.");
+      deleteBtn.disabled = false;
+    }
+  });
+
+  // Assemble row
+  row.appendChild(icon);
+  row.appendChild(input);
+  row.appendChild(saveBtn);
+  row.appendChild(copyBtn);
+  row.appendChild(deleteBtn);
+  linksDiv.appendChild(row);
+};
+
+// ===== Add New Field =====
+addNewBtn.addEventListener("click", async () => {
+  const fieldName = prompt("Enter a new field name:");
+  if (!fieldName || !fieldName.trim()) return;
+
+  const trimmed = fieldName.trim();
+
+  if (currentFields.includes(trimmed)) {
+    showToast("This field already exists!");
+    return;
+  }
+
+  try {
+    await addFieldToFirestore(currentUser.uid, trimmed);
+    currentFields.push(trimmed);
+    renderField(trimmed, "");
+    showToast(trimmed + " added ✓");
   } catch (error) {
-    alert("Did you give the clipboard permission ?");
+    showToast("Failed to add field. Try again.");
   }
-};
-
-/**
- * @param  {String} linkData The data of the field
- */
-const showalert = (linkData) => {
-  alert(linkData + " copied to clipboard ✔  ");
-};
-
-const loadAllFromLocalStorage = () => {
-  const defaultFields = [
-    "Github",
-    "Linkedin",
-    "Twitter",
-    "Portfolio",
-    "Email",
-    "Dev",
-    "Dribbble",
-  ];
-  // An array for custom fields
-  let customFields = JSON.parse(localStorage.getItem("customFields")) ?? [];
-
-  if (customFields.length != 0) {
-    customFields.forEach((field) => {
-      renderFieldsFromLocalStorage({ newFieldName: field, isNewField: false });
-    });
-  } else {
-    localStorage.setItem("customFields", JSON.stringify(defaultFields));
-  }
-};
-/**
- * @param  {String} newFieldName The name of the field
- * @param  {Boolean} isNewField A boolean to check if the field is new or not
- */
-const renderFieldsFromLocalStorage = ({ newFieldName, isNewField }) => {
-  const newField = document.createElement("div");
-  newField.classList.add(
-    "flex",
-    "flex-row",
-    "justify-center",
-    "items-center",
-    "ml-3"
-  );
-
-  const iconsHash = {
-    Github: "fab fa-github",
-    Linkedin: "fab fa-linkedin",
-    Twitter: "fab fa-twitter",
-    Portfolio: "fas fa-globe",
-    Email: "fas fa-envelope",
-    Dev: "fab fa-dev",
-    Dribbble: "fab fa-dribbble",
-  };
-
-  const newIcon = document.createElement("i");
-  newIcon.style.fontSize = "28px";
-
-  if (iconsHash[newFieldName]) {
-    newIcon.classList.add(...iconsHash[newFieldName].split(" "));
-  } else {
-    newIcon.classList.add("fas", "fa-link");
-  }
-
-  const newEditIcon = document.createElement("i");
-  newEditIcon.classList.add("fas", "fa-edit");
-
-  const newCopyIcon = document.createElement("i");
-  newCopyIcon.classList.add("fas", "fa-copy");
-
-  const newFieldInput = document.createElement("input");
-  newFieldInput.classList.add(
-    "w-3/5",
-    "ml-4",
-    "px-2",
-    "py-2",
-    "shadow-md",
-    "rounded-md",
-    "text-left"
-  );
-
-  newFieldInput.setAttribute("placeholder", newFieldName);
-  newFieldInput.setAttribute("id", newFieldName);
-  newFieldInput.value = localStorage.getItem(newFieldName);
-  newFieldInput.setAttribute("type", "text");
-
-  const newFieldEditBtn = document.createElement("button");
-  newFieldEditBtn.classList.add(
-    "m-2",
-    "bg-blue-500",
-    "hover:bg-blue-700",
-    "text-white",
-    "font-bold",
-    "py-2",
-    "px-4",
-    "rounded-md",
-    "shadow-md"
-  );
-  newFieldEditBtn.setAttribute("id", newFieldName + "EditBtn");
-
-  newFieldEditBtn.appendChild(newEditIcon);
-
-  newFieldEditBtn.addEventListener("click", () => {
-    const data = document.getElementById(newFieldName).value;
-    saveToLocalStorage(newFieldName, data);
-  });
-
-  const newFieldCopyBtn = document.createElement("button");
-  newFieldCopyBtn.classList.add(
-    "bg-blue-500",
-    "hover:bg-blue-700",
-    "text-white",
-    "font-bold",
-    "py-2",
-    "px-4",
-    "rounded-md",
-    "shadow-md"
-  );
-
-  newFieldCopyBtn.setAttribute("id", newFieldName + "CopyBtn");
-  newFieldCopyBtn.appendChild(newCopyIcon);
-
-  newFieldCopyBtn.addEventListener("click", () => {
-    const data = document.getElementById(newFieldName).value;
-    copyToClipboard(data);
-  });
-
-  newField.appendChild(newIcon);
-  newField.appendChild(newFieldInput);
-  newField.appendChild(newFieldEditBtn);
-  newField.appendChild(newFieldCopyBtn);
-
-  linksDiv.appendChild(newField);
-
-  if (isNewField) {
-    let existingFields = JSON.parse(localStorage.getItem("customFields"));
-    existingFields.push(newFieldName);
-    localStorage.setItem("customFields", JSON.stringify(existingFields));
-  }
-};
-
-addNewBtn.addEventListener("click", () => {
-  newFieldName = prompt("Enter a new field name");
-  if (!newFieldName) return;
-
-  if (isDuplicateField(newFieldName)) return;
-  renderFieldsFromLocalStorage({ newFieldName, isNewField: true });
 });
-/**
- * @param  {String} newLinkName The name of the field
- */
-const isDuplicateField = (newLinkName) => {
-  const links = JSON.parse(localStorage.getItem("customFields"));
 
-  if (!links) return;
+// ===== Sign Out =====
+signOutBtn.addEventListener("click", () => {
+  auth.signOut();
+});
 
-  if (links.includes(newLinkName)) {
-    alert("This field already exists");
-    return true;
-  }
+// ===== Helpers =====
+const showLoading = (show) => {
+  loadingEl.style.display = show ? "flex" : "none";
+  linksDiv.style.display = show ? "none" : "block";
 };
 
-// Load all the fields from local storage on startup.
-document.onload = loadAllFromLocalStorage();
+let toastTimeout;
+const showToast = (message) => {
+  toastEl.textContent = message;
+  toastEl.classList.add("show");
+  clearTimeout(toastTimeout);
+  toastTimeout = setTimeout(() => {
+    toastEl.classList.remove("show");
+  }, 2500);
+};

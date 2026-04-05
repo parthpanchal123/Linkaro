@@ -1,6 +1,415 @@
+/* ===== Base ===== */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
 body {
-  width: 500px;
-  height: 500px;
-  border-top: 1px solid #000;
+  width: 450px;
+  height: 600px;
   font-family: "Poppins", sans-serif;
+  overflow-y: auto;
+  background: #fafbfc;
+}
+
+/* ===== AUTH PAGE ===== */
+.auth-body {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 600px;
+}
+
+.auth-container {
+  background: white;
+  border-radius: 16px;
+  padding: 32px;
+  width: 380px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  animation: slideUp 0.4s ease;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.auth-header {
+  text-align: center;
+  margin-bottom: 28px;
+}
+
+.auth-icon {
+  font-size: 40px;
+  color: #667eea;
+  margin-bottom: 8px;
+}
+
+.auth-title {
+  font-size: 28px;
+  font-weight: 600;
+  color: #1a1a2e;
+  margin: 4px 0;
+}
+
+.auth-subtitle {
+  font-size: 14px;
+  color: #888;
+}
+
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.input-group {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.input-icon {
+  position: absolute;
+  left: 14px;
+  color: #aaa;
+  font-size: 14px;
+  pointer-events: none;
+}
+
+.input-group input {
+  width: 100%;
+  padding: 12px 14px 12px 42px;
+  border: 2px solid #e8e8e8;
+  border-radius: 10px;
+  font-size: 14px;
+  font-family: "Poppins", sans-serif;
+  transition: border-color 0.3s ease;
+  outline: none;
+  background: #fafbfc;
+}
+
+.input-group input:focus {
+  border-color: #667eea;
+  background: white;
+}
+
+.error-msg {
+  color: #e74c3c;
+  font-size: 12px;
+  min-height: 18px;
+  text-align: center;
+}
+
+.auth-btn {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  padding: 13px;
+  border-radius: 10px;
+  font-size: 15px;
+  font-weight: 500;
+  font-family: "Poppins", sans-serif;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.auth-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+}
+
+.auth-btn:active {
+  transform: translateY(0);
+}
+
+.auth-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.toggle-text {
+  text-align: center;
+  font-size: 13px;
+  color: #888;
+  margin-top: 20px;
+}
+
+.toggle-link {
+  color: #667eea;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.toggle-link:hover {
+  text-decoration: underline;
+}
+
+/* ===== MAIN PAGE — User Bar ===== */
+.user-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 16px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  font-size: 12px;
+}
+
+.user-email {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.sign-out-btn {
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  color: white;
+  padding: 4px 12px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-family: "Poppins", sans-serif;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.sign-out-btn:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+/* ===== MAIN PAGE — Header ===== */
+.app-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 14px;
+}
+
+.app-header h2 {
+  font-size: 17px;
+  font-weight: 600;
+  color: #1a1a2e;
+}
+
+/* ===== MAIN PAGE — Field Rows ===== */
+.links-area {
+  padding: 0 8px;
+}
+
+.field-row {
+  display: flex;
+  align-items: center;
+  padding: 5px 8px;
+  gap: 6px;
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.field-icon {
+  font-size: 22px;
+  width: 28px;
+  text-align: center;
+  color: #555;
+  flex-shrink: 0;
+}
+
+.field-row input {
+  flex: 1;
+  padding: 8px 12px;
+  border: 2px solid #e8e8e8;
+  border-radius: 8px;
+  font-size: 13px;
+  font-family: "Poppins", sans-serif;
+  outline: none;
+  transition: border-color 0.3s ease;
+  min-width: 0;
+  background: white;
+}
+
+.field-row input:focus {
+  border-color: #667eea;
+}
+
+.field-row button {
+  padding: 8px 10px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: transform 0.15s ease, opacity 0.2s ease;
+  font-size: 13px;
+  flex-shrink: 0;
+}
+
+.field-row button:hover {
+  transform: scale(1.08);
+}
+
+.field-row button:active {
+  transform: scale(0.95);
+}
+
+.field-row button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.btn-save {
+  background: #667eea;
+  color: white;
+}
+
+.btn-copy {
+  background: #28a745;
+  color: white;
+}
+
+.btn-delete {
+  background: #e74c3c;
+  color: white;
+}
+
+/* ===== Loading Spinner ===== */
+.loading-spinner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 0;
+  color: #667eea;
+}
+
+.loading-spinner i {
+  font-size: 32px;
+  margin-bottom: 12px;
+}
+
+.loading-spinner p {
+  font-size: 14px;
+  color: #888;
+}
+
+/* ===== Toast Notification ===== */
+.toast {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%) translateY(100px);
+  background: #1a1a2e;
+  color: white;
+  padding: 10px 24px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-family: "Poppins", sans-serif;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 1000;
+  white-space: nowrap;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+}
+
+.toast.show {
+  transform: translateX(-50%) translateY(0);
+}
+
+/* ===== Add Field Button ===== */
+.add-btn-area {
+  display: flex;
+  justify-content: center;
+  padding: 12px;
+}
+
+.add-btn {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 500;
+  font-family: "Poppins", sans-serif;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.add-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+}
+
+.add-btn:active {
+  transform: translateY(0);
+}
+
+/* ===== Info Bar ===== */
+.info-bar {
+  text-align: center;
+  padding: 8px;
+  font-size: 12px;
+  color: #aaa;
+}
+
+/* ===== Google Login Button & Divider ===== */
+.divider {
+  display: flex;
+  align-items: center;
+  text-align: center;
+  color: #aaa;
+  font-size: 11px;
+  margin: 4px 0;
+}
+
+.divider::before,
+.divider::after {
+  content: "";
+  flex: 1;
+  border-bottom: 1px solid #e8e8e8;
+}
+
+.divider span {
+  padding: 0 10px;
+}
+
+.google-btn {
+  background: white;
+  color: #555;
+  border: 2px solid #e8e8e8;
+  padding: 13px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 500;
+  font-family: "Poppins", sans-serif;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  transition: all 0.2s ease;
+}
+
+.google-btn:hover {
+  background: #fafbfc;
+  border-color: #dcdcdc;
+}
+
+.google-btn i {
+  color: #db4437; /* Google Red Default Icon Color */
+  font-size: 18px;
 }

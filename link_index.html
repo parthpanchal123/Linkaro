@@ -2,46 +2,72 @@
 <html lang="en">
 
 <head>
-	<meta charset="UTF-8">
-	<meta http-equiv="X-UA-Compatible" content="IE=edge">
-	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>Linkaro</title>
-	<link rel="stylesheet" href="https://unpkg.com/tailwindcss@^2/dist/tailwind.min.css">
-	<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.13.0/css/all.min.css" rel="stylesheet">
-	<link rel="stylesheet" href="./style.css" />
-	<link rel="preconnect" href="https://fonts.googleapis.com">
-	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-	<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500&display=swap" rel="stylesheet">
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Linkaro</title>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.13.0/css/all.min.css" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./style.css">
 </head>
 
 <body>
+  <!-- User Bar -->
+  <div class="user-bar">
+    <div class="user-email">
+      <i class="fas fa-user-circle"></i>
+      <span id="userEmail">Loading...</span>
+    </div>
+    <button id="signOutBtn" class="sign-out-btn">
+      <i class="fas fa-sign-out-alt"></i> Sign Out
+    </button>
+  </div>
 
-	<main>
-		<div class="flex flex-row items-center justify-center gap-x-2">
-			<i class="fa fa-link mt-2" style="font-size: 20px;"></i>
-			<h2 class=" text-center mt-2">Linkaro : Manage your links easily </h2>
-		</div>
+  <main>
+    <!-- Header -->
+    <div class="app-header">
+      <i class="fa fa-link" style="font-size: 20px;"></i>
+      <h2>Linkaro</h2>
+    </div>
 
-		<div class="links-area m-3">
-		</div>
+    <!-- Loading Spinner -->
+    <div id="loading" class="loading-spinner" style="display: none;">
+      <i class="fas fa-spinner fa-spin"></i>
+      <p>Loading your links...</p>
+    </div>
 
-		<div class="flex flex-row justify-center items-center">
-			<button id="addNewBtn"
-				class="m-2 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md shadow-md">
-				<i class="fas fa-plus-circle"></i>
-				Add a new field </button>
-		</div>
+    <!-- Links Area -->
+    <div class="links-area"></div>
 
-		<div class="text-center mt-5">
-			<i class="fas fa-info-circle"></i>
-			Click on the edit button to save after making
-			required changes</div>
+    <!-- Add Button -->
+    <div class="add-btn-area">
+      <button id="addNewBtn" class="add-btn">
+        <i class="fas fa-plus-circle"></i>
+        Add a new field
+      </button>
+    </div>
 
-		</div>
-	</main>
+    <!-- Info -->
+    <div class="info-bar">
+      <i class="fas fa-info-circle"></i>
+      Click the check button to save &bull; Links sync across devices
+    </div>
+  </main>
 
+  <!-- Toast Notification -->
+  <div id="toast" class="toast"></div>
 
-	<script src=" ./app.js"> </script>
+  <!-- Firebase SDKs -->
+  <script src="./firebase-app-compat.js"></script>
+  <script src="./firebase-auth-compat.js"></script>
+  <script src="./firebase-firestore-compat.js"></script>
+
+  <!-- App Scripts -->
+  <script src="./firebase-config.js"></script>
+  <script src="./firebase-db.js"></script>
+  <script src="./app.js"></script>
 </body>
 
 </html>

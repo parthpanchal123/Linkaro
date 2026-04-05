@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Linkaro — Sign In</title>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.13.0/css/all.min.css" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./style.css">
+</head>
+
+<body class="auth-body">
+  <div class="auth-container">
+    <div class="auth-header">
+      <i class="fa fa-link auth-icon"></i>
+      <h1 class="auth-title">Linkaro</h1>
+      <p class="auth-subtitle">Your links, everywhere.</p>
+    </div>
+
+    <form id="authForm" class="auth-form">
+      <div class="input-group">
+        <i class="fas fa-envelope input-icon"></i>
+        <input type="email" id="emailInput" placeholder="Email address" required>
+      </div>
+
+      <div class="input-group">
+        <i class="fas fa-lock input-icon"></i>
+        <input type="password" id="passwordInput" placeholder="Password" required minlength="6">
+      </div>
+
+      <div id="errorMsg" class="error-msg"></div>
+
+      <button type="submit" id="submitBtn" class="auth-btn">
+        <span id="btnText">Log In</span>
+        <i id="btnSpinner" class="fas fa-spinner fa-spin" style="display: none;"></i>
+      </button>
+
+      <div class="divider">
+        <span>OR</span>
+      </div>
+
+      <button type="button" id="googleBtn" class="google-btn">
+        <i class="fab fa-google"></i>
+        Continue with Google
+      </button>
+    </form>
+
+    <p class="toggle-text">
+      <span id="toggleMsg">Don't have an account? </span>
+      <a href="#" id="toggleBtn" class="toggle-link">Sign Up</a>
+    </p>
+  </div>
+
+  <!-- Firebase SDKs -->
+  <script src="./firebase-app-compat.js"></script>
+  <script src="./firebase-auth-compat.js"></script>
+
+  <!-- App Scripts -->
+  <script src="./firebase-config.js"></script>
+  <script src="./auth.js"></script>
+</body>
+
+</html>
