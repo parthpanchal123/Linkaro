@@ -13,16 +13,7 @@ const initUserData = async (userId) => {
   const doc = await userRef.get();
 
   if (!doc.exists) {
-    const defaultFields = [
-      "Github",
-      "Linkedin",
-      "Twitter",
-      "Portfolio",
-      "Email",
-      "Dev",
-      "Dribbble",
-    ];
-    const defaultData = { fields: defaultFields, links: {} };
+    const defaultData = { fields: [], links: {} };
     await userRef.set(defaultData);
     return defaultData;
   }

@@ -90,8 +90,20 @@ const showPromptModal = () => {
     };
 
     const handleOk = () => {
+      const name = modalInput.value.trim();
+      if (!name) {
+        // Validation: Shake the modal if empty
+        const content = customModal.querySelector('.modal-content');
+        if (content) {
+          content.classList.remove('shake');
+          void content.offsetWidth; // Trigger reflow
+          content.classList.add('shake');
+        }
+        modalInput.focus();
+        return;
+      }
       cleanup();
-      resolve({ name: modalInput.value, url: modalUrlInput ? modalUrlInput.value : "" });
+      resolve({ name: name, url: modalUrlInput ? modalUrlInput.value.trim() : "" });
     };
     const handleCancel = () => {
       cleanup();
@@ -216,20 +228,6 @@ auth.onAuthStateChanged(async (user) => {
       currentFields = data.fields || [];
       currentLinks = data.links || {};
 
-    // Auto-migrate 'Email' to 'Gmail' across the database automatically
-    if (currentFields.includes("Email")) {
-      const idx = currentFields.indexOf("Email");
-      currentFields[idx] = "Gmail";
-      currentLinks["Gmail"] = currentLinks["Email"] || "";
-      delete currentLinks["Email"];
-      
-      const docRef = db.collection("users").doc(user.uid);
-      await docRef.set({
-        fields: currentFields,
-        links: currentLinks
-      }, { merge: true });
-    }
-
     renderAllFields();
   } catch (error) {
     console.error("Failed to load data:", error);
@@ -301,10 +299,10 @@ const renderAllFields = () => {
       activeFieldArea.innerHTML = `
         <div class="empty-state">
           <div class="empty-state-icon"><i class="fas fa-link"></i></div>
-          <div class="empty-state-title">No links yet</div>
-          <div class="empty-state-desc">Add your first link to start<br>building your collection.</div>
-          <button class="btn-add-link" onclick="document.getElementById('addHeaderBtn').click()">
-            <i class="fas fa-plus"></i> Add Link
+          <div class="empty-state-title">Your digital hub is a bit lonely...</div>
+          <div class="empty-state-desc">Add your first link to start your empire.</div>
+          <button class="btn-add-link" style="margin-top: 20px;">
+            <i class="fas fa-plus"></i> Add First Link
           </button>
         </div>`;
     }
