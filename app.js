@@ -21,8 +21,6 @@ const confirmModalTitle = document.getElementById("confirmModalTitle");
 const confirmModalDesc = document.getElementById("confirmModalDesc");
 const confirmCancelBtn = document.getElementById("confirmCancelBtn");
 const confirmOkBtn = document.getElementById("confirmOkBtn");
-const themeToggleBtn = document.getElementById("themeToggleBtn");
-
 if (themeToggleBtn) {
   const currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
   themeToggleBtn.innerHTML = currentTheme === 'dark' ? '<i class="fas fa-sun"></i>' : '<i class="fas fa-moon"></i>';
@@ -35,6 +33,7 @@ if (themeToggleBtn) {
     localStorage.setItem('theme', newTheme);
     
     themeToggleBtn.innerHTML = newTheme === 'dark' ? '<i class="fas fa-sun"></i>' : '<i class="fas fa-moon"></i>';
+    trackEvent('theme_toggled', { theme: newTheme });
   });
 }
 
@@ -47,6 +46,7 @@ let searchQuery = "";
 const searchClearBtn = document.getElementById("searchClearBtn");
 const linkCountEl = document.getElementById("linkCount");
 
+let searchTimeout;
 if (searchInput) {
   searchInput.addEventListener("input", (e) => {
     searchQuery = e.target.value.toLowerCase();
@@ -54,6 +54,12 @@ if (searchInput) {
       searchClearBtn.classList.toggle("visible", searchQuery.length > 0);
     }
     renderAllFields();
+    
+    // Tracking search
+    clearTimeout(searchTimeout);
+    searchTimeout = setTimeout(() => {
+      if (searchQuery.length > 1) trackEvent('search_performed', { query: searchQuery });
+    }, 1000);
   });
 }
 
@@ -200,14 +206,15 @@ auth.onAuthStateChanged(async (user) => {
     return;
   }
 
-  currentUser = user;
-  userEmailEl.textContent = user.email;
-  showLoading(true);
+    currentUser = user;
+    userEmailEl.textContent = user.email;
+    showLoading(true);
+    trackEvent('login', { method: 'google', email: user.email });
 
-  try {
-    const data = await initUserData(user.uid);
-    currentFields = data.fields || [];
-    currentLinks = data.links || {};
+    try {
+      const data = await initUserData(user.uid);
+      currentFields = data.fields || [];
+      currentLinks = data.links || {};
 
     // Auto-migrate 'Email' to 'Gmail' across the database automatically
     if (currentFields.includes("Email")) {
@@ -274,6 +281,7 @@ const renderAllFields = () => {
     bubble.addEventListener("click", () => {
       activeField = fieldName;
       renderAllFields();
+      trackEvent('link_selected', { name: fieldName });
     });
     bubblesArea.appendChild(bubble);
   });
@@ -346,6 +354,7 @@ const renderActiveRow = (fieldName, fieldValue) => {
       await saveLinkToFirestore(currentUser.uid, fieldName, url);
       currentLinks[fieldName] = url;
       showToast(fieldName + " saved ✓");
+      trackEvent('link_saved', { name: fieldName });
     } catch (error) {
       showToast("Failed to save. Try again.");
     } finally {
@@ -367,6 +376,7 @@ const renderActiveRow = (fieldName, fieldValue) => {
     try {
       await navigator.clipboard.writeText(url);
       showToast("Copied: " + url);
+      trackEvent('link_copied', { name: fieldName });
     } catch (error) {
       showToast("Clipboard permission denied.");
     }
@@ -387,6 +397,7 @@ const renderActiveRow = (fieldName, fieldValue) => {
       delete currentLinks[fieldName];
       activeField = null; // Forces recalculation of activeField
       renderAllFields();
+      trackEvent('link_deleted', { name: fieldName });
       showToast(fieldName + " deleted");
     } catch (error) {
       showToast("Failed to delete. Try again.");
@@ -455,6 +466,7 @@ const handleAddClick = async () => {
 
     renderAllFields();
     showToast(fieldName + " added ✓");
+    trackEvent('link_added', { name: fieldName, has_url: !!fieldUrl });
   } catch (error) {
     showToast("Failed to add field. Try again.");
   }
@@ -466,6 +478,7 @@ if (document.getElementById("addHeaderBtn")) {
 
 // ===== Sign Out =====
 signOutBtn.addEventListener("click", () => {
+  trackEvent('logout');
   auth.signOut();
 });
 
