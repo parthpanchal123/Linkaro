@@ -15,6 +15,9 @@ const customModal = document.getElementById("customModal");
 const modalInput = document.getElementById("modalInput");
 const modalCancelBtn = document.getElementById("modalCancelBtn");
 const modalOkBtn = document.getElementById("modalOkBtn");
+const searchArea = document.querySelector(".search-area");
+const instructionText = document.getElementById("instructionText");
+const linkCountBadge = document.querySelector(".link-count");
 
 const confirmModal = document.getElementById("confirmModal");
 const confirmModalTitle = document.getElementById("confirmModalTitle");
@@ -93,7 +96,7 @@ const showPromptModal = () => {
       const name = modalInput.value.trim();
       if (!name) {
         // Validation: Shake the modal if empty
-        const content = customModal.querySelector('.modal-content');
+        const content = customModal.querySelector('.modal');
         if (content) {
           content.classList.remove('shake');
           void content.offsetWidth; // Trigger reflow
@@ -256,6 +259,11 @@ const renderAllFields = () => {
       const matchUrl = url.toLowerCase().includes(searchQuery);
       return matchName || matchUrl;
     });
+  }
+
+  const instructionText = document.getElementById("instructionText");
+  if (instructionText) {
+    instructionText.style.display = displayFields.length > 0 ? "flex" : "none";
   }
 
   if (displayFields.length > 0) {
@@ -488,6 +496,10 @@ const showLoading = (show) => {
   loadingEl.style.display = show ? "flex" : "none";
   bubblesArea.style.display = show ? "none" : "flex";
   activeFieldArea.style.display = show ? "none" : "flex";
+  
+  if (searchArea) searchArea.style.display = show ? "none" : "block";
+  if (instructionText) instructionText.style.display = show ? "none" : (currentFields.length > 0 ? "flex" : "none");
+  if (linkCountBadge) linkCountBadge.style.display = show ? "none" : (currentFields.length > 0 ? "inline-flex" : "none");
 };
 
 let toastTimeout;

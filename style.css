@@ -301,6 +301,21 @@ button:disabled {
 }
 
 /* ===== MAIN PAGE — User Bar ===== */
+.info-bar {
+  display: none; /* Hidden by default to prevent flicker, shown by JS */
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 16px;
+  background: rgba(148, 163, 184, 0.05);
+  border-radius: var(--radius-md);
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  margin: 0 16px 16px;
+  border: 1px solid rgba(148, 163, 184, 0.1);
+}
+
 .user-bar {
   display: flex;
   align-items: center;
@@ -397,6 +412,7 @@ button:disabled {
 /* ===== MAIN PAGE — Search ===== */
 .search-area {
   padding: 0 16px 12px;
+  display: none; /* Hidden by default to prevent flicker, shown by JS */
 }
 
 .search-box {
@@ -551,7 +567,7 @@ button:disabled {
 
 /* ===== Loading Spinner ===== */
 .loading-spinner {
-  display: flex;
+  display: flex; /* Shown by default when page first loads */
   flex-direction: column;
   align-items: center;
   justify-content: center;
@@ -882,8 +898,9 @@ button:disabled {
 }
 
 :root[data-theme="dark"] .btn-save:hover,
-:root[data-theme="dark"] .btn-copy:hover {
-  background: rgba(30, 41, 59, 0.9);
+:root[data-theme="dark"] .btn-cancel:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--text-primary);
 }
 
 :root[data-theme="dark"] .btn-delete:hover {
@@ -894,9 +911,23 @@ button:disabled {
   background: rgba(255, 255, 255, 0.1);
 }
 
+/* ===== Dark: Search Clear Button ===== */
+:root[data-theme="dark"] .search-clear-btn {
+  color: var(--text-secondary);
+}
+:root[data-theme="dark"] .search-clear-btn:hover {
+  color: var(--text-primary);
+}
+
+/* ===== Dark: Favicon Shimmer ===== */
+:root[data-theme="dark"] .favicon-shimmer {
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0.05) 25%, rgba(255, 255, 255, 0.1) 50%, rgba(255, 255, 255, 0.05) 75%);
+}
+
 :root[data-theme="dark"] input:focus {
   background: rgba(30, 41, 59, 0.8) !important;
   border-color: rgba(255, 255, 255, 0.2) !important;
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.05) !important;
 }
 
 /* ===== Dark: Add Link Button ===== */
@@ -1037,4 +1068,17 @@ button:disabled {
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
+}
+
+/* ===== VALIDATION SHAKE ===== */
+@keyframes shake {
+  0%, 100% { transform: scale(1); }
+  25% { transform: scale(1.02) translateX(-4px); }
+  50% { transform: scale(1.02) translateX(4px); }
+  75% { transform: scale(1.02) translateX(-4px); }
+}
+
+.modal.shake {
+  animation: shake 0.3s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+  border-color: rgba(239, 68, 68, 0.5) !important;
 }
