@@ -255,7 +255,13 @@ const renderAllFields = () => {
   // Update link count badge
   if (linkCountEl) {
     const total = currentFields.length;
-    linkCountEl.textContent = total > 0 ? `${total} link${total !== 1 ? 's' : ''}` : '';
+    if (total > 0) {
+      linkCountEl.textContent = `${total} link${total !== 1 ? 's' : ''}`;
+      linkCountEl.style.display = "inline-flex";
+    } else {
+      linkCountEl.textContent = "";
+      linkCountEl.style.display = "none";
+    }
   }
   
   let displayFields = currentFields;
@@ -562,7 +568,15 @@ const showLoading = (show) => {
   
   if (searchArea) searchArea.style.display = show ? "none" : "block";
   if (instructionText) instructionText.style.display = show ? "none" : (currentFields.length > 0 ? "flex" : "none");
-  if (linkCountBadge) linkCountBadge.style.display = show ? "none" : (currentFields.length > 0 ? "inline-flex" : "none");
+  if (linkCountBadge) {
+    if (show) {
+      linkCountBadge.style.display = "none";
+    } else if (currentFields.length > 0) {
+      linkCountBadge.style.display = "inline-flex";
+    } else {
+      linkCountBadge.style.display = "none";
+    }
+  }
 };
 
 let toastTimeout;

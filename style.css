@@ -372,7 +372,36 @@ button:disabled {
   color: var(--text-primary);
 }
 
-/* ===== Add Link Button ===== */
+/* ===== Add Link / Save Tab Buttons ===== */
+.btn-save-tab {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-inverse);
+  background: var(--accent-color);
+  border-radius: var(--radius-full);
+  box-shadow: var(--shadow-sm);
+  transition: all var(--transition-fast);
+  border: none;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.btn-save-tab:hover {
+  background: var(--accent-hover);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+}
+
+.btn-save-tab i {
+  font-size: 11px;
+  color: inherit; /* Ensure it stays light */
+}
+
 .btn-add-link {
   display: flex;
   align-items: center;
@@ -880,6 +909,7 @@ button:disabled {
 }
 
 :root[data-theme="dark"] .btn-save,
+:root[data-theme="dark"] .btn-save-tab,
 :root[data-theme="dark"] .btn-copy,
 :root[data-theme="dark"] .btn-delete,
 :root[data-theme="dark"] .theme-toggle {
