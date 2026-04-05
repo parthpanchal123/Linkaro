@@ -11,6 +11,32 @@ const userEmailEl = document.getElementById("userEmail");
 const loadingEl = document.getElementById("loading");
 const toastEl = document.getElementById("toast");
 const searchInput = document.getElementById("searchInput");
+const customModal = document.getElementById("customModal");
+const modalInput = document.getElementById("modalInput");
+const modalCancelBtn = document.getElementById("modalCancelBtn");
+const modalOkBtn = document.getElementById("modalOkBtn");
+
+const confirmModal = document.getElementById("confirmModal");
+const confirmModalTitle = document.getElementById("confirmModalTitle");
+const confirmModalDesc = document.getElementById("confirmModalDesc");
+const confirmCancelBtn = document.getElementById("confirmCancelBtn");
+const confirmOkBtn = document.getElementById("confirmOkBtn");
+const themeToggleBtn = document.getElementById("themeToggleBtn");
+
+if (themeToggleBtn) {
+  const currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
+  themeToggleBtn.innerHTML = currentTheme === 'dark' ? '<i class="fas fa-sun"></i>' : '<i class="fas fa-moon"></i>';
+
+  themeToggleBtn.addEventListener("click", () => {
+    let theme = document.documentElement.getAttribute('data-theme') || 'light';
+    let newTheme = theme === 'dark' ? 'light' : 'dark';
+    
+    document.documentElement.setAttribute('data-theme', newTheme);
+    localStorage.setItem('theme', newTheme);
+    
+    themeToggleBtn.innerHTML = newTheme === 'dark' ? '<i class="fas fa-sun"></i>' : '<i class="fas fa-moon"></i>';
+  });
+}
 
 let currentUser = null;
 let currentFields = [];
@@ -18,12 +44,100 @@ let currentLinks = {};
 let activeField = null;
 let searchQuery = "";
 
+const searchClearBtn = document.getElementById("searchClearBtn");
+const linkCountEl = document.getElementById("linkCount");
+
 if (searchInput) {
   searchInput.addEventListener("input", (e) => {
     searchQuery = e.target.value.toLowerCase();
+    if (searchClearBtn) {
+      searchClearBtn.classList.toggle("visible", searchQuery.length > 0);
+    }
     renderAllFields();
   });
 }
+
+if (searchClearBtn) {
+  searchClearBtn.addEventListener("click", () => {
+    searchInput.value = "";
+    searchQuery = "";
+    searchClearBtn.classList.remove("visible");
+    renderAllFields();
+    searchInput.focus();
+  });
+}
+
+const showPromptModal = () => {
+  return new Promise((resolve) => {
+    const modalUrlInput = document.getElementById("modalUrlInput");
+    modalInput.value = "";
+    if (modalUrlInput) modalUrlInput.value = "";
+    customModal.classList.add("show");
+    setTimeout(() => modalInput.focus(), 50);
+    
+    const cleanup = () => {
+      customModal.classList.remove("show");
+      modalOkBtn.removeEventListener("click", handleOk);
+      modalCancelBtn.removeEventListener("click", handleCancel);
+      modalInput.removeEventListener("keydown", handleKey);
+      if (modalUrlInput) modalUrlInput.removeEventListener("keydown", handleKey);
+    };
+
+    const handleOk = () => {
+      cleanup();
+      resolve({ name: modalInput.value, url: modalUrlInput ? modalUrlInput.value : "" });
+    };
+    const handleCancel = () => {
+      cleanup();
+      resolve(null);
+    };
+    const handleKey = (e) => {
+      if (e.key === "Enter") handleOk();
+      if (e.key === "Escape") handleCancel();
+    };
+
+    modalOkBtn.addEventListener("click", handleOk);
+    modalCancelBtn.addEventListener("click", handleCancel);
+    modalInput.addEventListener("keydown", handleKey);
+    if (modalUrlInput) modalUrlInput.addEventListener("keydown", handleKey);
+  });
+};
+
+const showConfirmModal = (title, description) => {
+  return new Promise((resolve) => {
+    if(title) confirmModalTitle.textContent = title;
+    if(description) confirmModalDesc.textContent = description;
+    confirmModal.classList.add("show");
+    
+    setTimeout(() => confirmCancelBtn.focus(), 50);
+
+    const cleanup = () => {
+      confirmModal.classList.remove("show");
+      confirmOkBtn.removeEventListener("click", handleOk);
+      confirmCancelBtn.removeEventListener("click", handleCancel);
+      document.removeEventListener("keydown", handleKey);
+    };
+
+    const handleOk = () => {
+      cleanup();
+      resolve(true);
+    };
+    const handleCancel = () => {
+      cleanup();
+      resolve(false);
+    };
+    const handleKey = (e) => {
+      if (confirmModal.classList.contains("show")) {
+        if (e.key === "Enter") handleOk();
+        if (e.key === "Escape") handleCancel();
+      }
+    };
+
+    confirmOkBtn.addEventListener("click", handleOk);
+    confirmCancelBtn.addEventListener("click", handleCancel);
+    document.addEventListener("keydown", handleKey);
+  });
+};
 
 // ===== Icon Map & Dynamic Fetcher =====
 const getIconHTML = (fieldName, url) => {
@@ -65,7 +179,18 @@ const getIconHTML = (fieldName, url) => {
     } catch(e) {}
   }
 
-  return `<img src="https://www.google.com/s2/favicons?domain=${domain}&sz=32" style="width:16px;height:16px;border-radius:2px;vertical-align:middle;margin-right:0px;display:inline-block;" onerror="this.outerHTML='<i class=\\'fas fa-link\\'></i>'" />`;
+  // Show shimmer placeholder, then swap to favicon once loaded
+  const shimId = `fav_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
+  setTimeout(() => {
+    const el = document.getElementById(shimId);
+    if (!el) return;
+    const img = new Image();
+    img.src = `https://www.google.com/s2/favicons?domain=${domain}&sz=32`;
+    img.style.cssText = "width:16px;height:16px;border-radius:2px;vertical-align:middle;display:inline-block;";
+    img.onload = () => { if (el) el.replaceWith(img); };
+    img.onerror = () => { if (el) el.outerHTML = '<i class="fas fa-link"></i>'; };
+  }, 10);
+  return `<span id="${shimId}" class="favicon-shimmer"></span>`;
 };
 
 // ===== Auth State Listener =====
@@ -112,6 +237,12 @@ const renderAllFields = () => {
   bubblesArea.innerHTML = "";
   activeFieldArea.innerHTML = "";
   
+  // Update link count badge
+  if (linkCountEl) {
+    const total = currentFields.length;
+    linkCountEl.textContent = total > 0 ? `${total} link${total !== 1 ? 's' : ''}` : '';
+  }
+  
   let displayFields = currentFields;
   if (searchQuery) {
     displayFields = currentFields.filter((fieldName) => {
@@ -128,14 +259,15 @@ const renderAllFields = () => {
       else activeField = displayFields[0];
     }
   } else {
-    activeField = null; // deselect if filtered out to zero
+    activeField = null;
   }
 
-  // Render Bubbles
-  displayFields.forEach((fieldName) => {
+  // Render Bubbles with staggered animation
+  displayFields.forEach((fieldName, index) => {
     const bubble = document.createElement("button");
     bubble.classList.add("bubble");
     if (fieldName === activeField) bubble.classList.add("active");
+    bubble.style.animationDelay = `${index * 35}ms`;
     
     bubble.innerHTML = `${getIconHTML(fieldName, currentLinks[fieldName])} <span class="bubble-text" style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 140px;">${fieldName}</span>`;
     
@@ -146,21 +278,27 @@ const renderAllFields = () => {
     bubblesArea.appendChild(bubble);
   });
 
-  // Add Button Bubble
-  const addBtn = document.createElement("button");
-  addBtn.classList.add("bubble", "bubble-add");
-  addBtn.innerHTML = `<i class="fas fa-plus"></i> New Link`;
-  addBtn.addEventListener("click", handleAddClick);
-  bubblesArea.appendChild(addBtn);
-
-  // Render Active Field Row
+  // Render Active Field Row or Empty State
   if (activeField) {
     renderActiveRow(activeField, currentLinks[activeField] || "");
   } else {
     if (searchQuery) {
-      activeFieldArea.innerHTML = `<div class="info-bar" style="margin-top:20px;">No matches found for "${searchQuery}"</div>`;
+      activeFieldArea.innerHTML = `
+        <div class="empty-state">
+          <div class="empty-state-icon"><i class="fas fa-search"></i></div>
+          <div class="empty-state-title">No matches found</div>
+          <div class="empty-state-desc">No links match "${searchQuery}".<br>Try a different search.</div>
+        </div>`;
     } else {
-      activeFieldArea.innerHTML = `<div class="info-bar" style="margin-top:20px;">No links yet. Add one above!</div>`;
+      activeFieldArea.innerHTML = `
+        <div class="empty-state">
+          <div class="empty-state-icon"><i class="fas fa-link"></i></div>
+          <div class="empty-state-title">No links yet</div>
+          <div class="empty-state-desc">Add your first link to start<br>building your collection.</div>
+          <button class="btn-add-link" onclick="document.getElementById('addHeaderBtn').click()">
+            <i class="fas fa-plus"></i> Add Link
+          </button>
+        </div>`;
     }
   }
 };
@@ -240,7 +378,8 @@ const renderActiveRow = (fieldName, fieldValue) => {
   deleteBtn.innerHTML = '<i class="fas fa-trash"></i> Delete';
   deleteBtn.title = "Delete field";
   deleteBtn.addEventListener("click", async () => {
-    if (!confirm('Delete "' + fieldName + '"?')) return;
+    const isConfirmed = await showConfirmModal("Delete Link", `Are you sure you want to delete "${fieldName}"?`);
+    if (!isConfirmed) return;
     deleteBtn.disabled = true;
     try {
       await deleteFieldFromFirestore(currentUser.uid, fieldName);
@@ -276,19 +415,21 @@ const renderActiveRow = (fieldName, fieldValue) => {
 
 // ===== Add New Field =====
 const handleAddClick = async () => {
-  let fieldName = prompt("Enter a link name (e.g. Github, TikTok):");
-  if (!fieldName || !fieldName.trim()) return;
+  const result = await showPromptModal();
+  if (!result || !result.name || !result.name.trim()) return;
 
-  fieldName = fieldName.trim();
+  let fieldName = result.name.trim();
+  let fieldUrl = (result.url || "").trim();
 
-  // Smartly extract domain if user mistakenly pasted a full URL
+  // Smartly extract domain if user mistakenly pasted a full URL as the name
   if (fieldName.startsWith("http://") || fieldName.startsWith("https://")) {
+    // If they pasted a URL as the name and left URL blank, use it as the URL too
+    if (!fieldUrl) fieldUrl = fieldName;
     try {
       const urlObj = new URL(fieldName);
       let host = urlObj.hostname.replace(/^www\./i, "");
       let parts = host.split('.');
       let cleanName = parts.length > 1 ? parts[parts.length - 2] : parts[0];
-      // Check for two-part TLDs like .co.uk
       if (['co', 'com', 'org', 'net', 'edu', 'gov'].includes(cleanName.toLowerCase()) && parts.length > 2) {
           cleanName = parts[parts.length - 3];
       }
@@ -304,14 +445,24 @@ const handleAddClick = async () => {
   try {
     await addFieldToFirestore(currentUser.uid, fieldName);
     currentFields.push(fieldName);
-    currentLinks[fieldName] = "";
+    currentLinks[fieldName] = fieldUrl;
     activeField = fieldName;
+
+    // If a URL was provided, save it immediately
+    if (fieldUrl) {
+      await saveLinkToFirestore(currentUser.uid, fieldName, fieldUrl);
+    }
+
     renderAllFields();
     showToast(fieldName + " added ✓");
   } catch (error) {
     showToast("Failed to add field. Try again.");
   }
 };
+
+if (document.getElementById("addHeaderBtn")) {
+  document.getElementById("addHeaderBtn").addEventListener("click", handleAddClick);
+}
 
 // ===== Sign Out =====
 signOutBtn.addEventListener("click", () => {

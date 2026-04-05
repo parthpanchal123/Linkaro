@@ -20,16 +20,27 @@
       <i class="fas fa-user-circle"></i>
       <span id="userEmail">Loading...</span>
     </div>
-    <button id="signOutBtn" class="sign-out-btn">
-      <i class="fas fa-sign-out-alt"></i> Sign Out
-    </button>
+    <div style="display:flex; gap:8px;">
+      <button id="themeToggleBtn" class="theme-toggle" title="Toggle Theme">
+        <i class="fas fa-moon"></i>
+      </button>
+      <button id="signOutBtn" class="sign-out-btn" title="Sign Out">
+        <i class="fas fa-sign-out-alt"></i>
+      </button>
+    </div>
   </div>
 
   <main>
     <!-- Header -->
     <div class="app-header">
-      <i class="fa fa-link" style="font-size: 20px;"></i>
-      <h2>Linkaro</h2>
+      <div style="display: flex; align-items: center; gap: 10px;">
+        <i class="fa fa-link" style="font-size: 20px;"></i>
+        <h2>Linkaro</h2>
+        <span id="linkCount" class="link-count"></span>
+      </div>
+      <button id="addHeaderBtn" class="btn-add-link" title="Add New Link">
+        <i class="fas fa-plus"></i> Add Link
+      </button>
     </div>
 
     <!-- Search Area -->
@@ -37,6 +48,9 @@
       <div class="search-box">
         <i class="fas fa-search"></i>
         <input type="text" id="searchInput" placeholder="Search name or URL...">
+        <button id="searchClearBtn" class="search-clear" title="Clear search">
+          <i class="fas fa-times"></i>
+        </button>
       </div>
     </div>
 
@@ -58,6 +72,40 @@
     <!-- Active Field Area -->
     <div class="active-field-area" id="activeFieldArea"></div>
   </main>
+
+  <!-- Confirm Modal -->
+  <div id="confirmModal" class="modal-overlay">
+    <div class="modal">
+      <h3 class="modal-title" id="confirmModalTitle">Confirm</h3>
+      <p class="modal-desc" id="confirmModalDesc">Are you sure?</p>
+      <div class="modal-actions">
+        <button id="confirmCancelBtn" class="btn-cancel">Cancel</button>
+        <button id="confirmOkBtn" class="btn-danger">OK</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Custom Modal -->
+  <div id="customModal" class="modal-overlay">
+    <div class="modal">
+      <h3 class="modal-title">New Link</h3>
+      <p class="modal-desc">Add a new link to your collection:</p>
+      <div class="modal-fields">
+        <div class="modal-field-group">
+          <label for="modalInput" class="modal-label">Name</label>
+          <input type="text" id="modalInput" placeholder="e.g. Github, TikTok" />
+        </div>
+        <div class="modal-field-group">
+          <label for="modalUrlInput" class="modal-label">URL <span style="color: var(--text-secondary); font-weight: 400;">(optional)</span></label>
+          <input type="url" id="modalUrlInput" placeholder="https://..." />
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button id="modalCancelBtn" class="btn-cancel">Cancel</button>
+        <button id="modalOkBtn" class="btn-ok">Add</button>
+      </div>
+    </div>
+  </div>
 
   <!-- Toast Notification -->
   <div id="toast" class="toast"></div>
