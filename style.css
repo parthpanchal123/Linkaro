@@ -44,7 +44,7 @@
 body {
   width: 420px;
   height: 600px;
-  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  font-family: 'Hanken Grotesk', system-ui, -apple-system, sans-serif;
   overflow-x: hidden;
   overflow-y: auto;
   background: linear-gradient(-45deg, #f1f5f9, #e2e8f0, #f8fafc, #e0e7ff, #f3e8ff);
@@ -52,6 +52,24 @@ body {
   animation: gradientBG 15s ease infinite;
   color: var(--text-primary);
   -webkit-font-smoothing: antialiased;
+  letter-spacing: -0.01em;
+}
+
+h1, h2, h3, .auth-title, .modal-title {
+  font-family: 'Figtree', sans-serif;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.field-row input {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px;
+  letter-spacing: -0.025em;
+}
+
+.bubble {
+  font-weight: 500;
+  letter-spacing: -0.01em;
 }
 
 /* ===== SCROLLBAR ===== */
@@ -270,14 +288,16 @@ button:disabled {
 
 .toggle-link {
   color: var(--text-primary);
-  text-decoration: none;
+  text-decoration: underline;
+  text-decoration-color: rgba(148, 163, 184, 0.4);
+  text-underline-offset: 4px;
   font-weight: 600;
-  transition: color var(--transition-fast);
+  transition: all var(--transition-fast);
 }
 
 .toggle-link:hover {
-  color: #000;
-  text-decoration: underline;
+  text-decoration-color: var(--text-primary);
+  opacity: 0.8;
 }
 
 /* ===== MAIN PAGE — User Bar ===== */
