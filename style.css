@@ -971,6 +971,12 @@ button:disabled {
   padding: 3px 10px;
   border-radius: var(--radius-full);
   margin-left: 8px;
+  transition: all var(--transition-fast);
+}
+
+/* Hide the badge entirely if it has no content to avoid 'ghost' pills */
+.link-count:empty {
+  display: none;
 }
 
 :root[data-theme="dark"] .link-count {

@@ -472,9 +472,12 @@ const handleAddClick = async () => {
   }
 };
 
-if (document.getElementById("addHeaderBtn")) {
-  document.getElementById("addHeaderBtn").addEventListener("click", handleAddClick);
-}
+// Handle all 'Add Link' buttons (Header and Empty State) via delegation
+document.addEventListener("click", (e) => {
+  if (e.target.closest(".btn-add-link")) {
+    handleAddClick();
+  }
+});
 
 // ===== Sign Out =====
 signOutBtn.addEventListener("click", () => {
