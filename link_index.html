@@ -9,7 +9,7 @@
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.13.0/css/all.min.css" rel="stylesheet">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="./style.css">
 </head>
 
@@ -32,28 +32,31 @@
       <h2>Linkaro</h2>
     </div>
 
+    <!-- Search Area -->
+    <div class="search-area">
+      <div class="search-box">
+        <i class="fas fa-search"></i>
+        <input type="text" id="searchInput" placeholder="Search name or URL...">
+      </div>
+    </div>
+
+    <!-- Info -->
+    <div class="info-bar">
+      <i class="fas fa-info-circle"></i>
+      Click a tag to view or update your link
+    </div>
+
     <!-- Loading Spinner -->
     <div id="loading" class="loading-spinner" style="display: none;">
       <i class="fas fa-spinner fa-spin"></i>
       <p>Loading your links...</p>
     </div>
 
-    <!-- Links Area -->
-    <div class="links-area"></div>
+    <!-- Bubbles Area -->
+    <div class="bubbles-area" id="bubblesArea"></div>
 
-    <!-- Add Button -->
-    <div class="add-btn-area">
-      <button id="addNewBtn" class="add-btn">
-        <i class="fas fa-plus-circle"></i>
-        Add a new field
-      </button>
-    </div>
-
-    <!-- Info -->
-    <div class="info-bar">
-      <i class="fas fa-info-circle"></i>
-      Click the check button to save &bull; Links sync across devices
-    </div>
+    <!-- Active Field Area -->
+    <div class="active-field-area" id="activeFieldArea"></div>
   </main>
 
   <!-- Toast Notification -->

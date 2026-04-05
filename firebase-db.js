@@ -38,9 +38,10 @@ const initUserData = async (userId) => {
  */
 const saveLinkToFirestore = async (userId, fieldName, url) => {
   const userRef = db.collection("users").doc(userId);
-  await userRef.update({
-    [`links.${fieldName}`]: url,
-  });
+  // Using FieldPath to prevent errors with dots/slashes in the field name
+  await userRef.update(
+    new firebase.firestore.FieldPath("links", fieldName), url
+  );
 };
 
 /**
@@ -62,8 +63,8 @@ const addFieldToFirestore = async (userId, fieldName) => {
  */
 const deleteFieldFromFirestore = async (userId, fieldName) => {
   const userRef = db.collection("users").doc(userId);
-  await userRef.update({
-    fields: firebase.firestore.FieldValue.arrayRemove(fieldName),
-    [`links.${fieldName}`]: firebase.firestore.FieldValue.delete(),
-  });
+  await userRef.update(
+    "fields", firebase.firestore.FieldValue.arrayRemove(fieldName),
+    new firebase.firestore.FieldPath("links", fieldName), firebase.firestore.FieldValue.delete()
+  );
 };
