@@ -3,6 +3,13 @@
  * Depends on: firebase-config.js, firebase-db.js
  */
 
+const cleanTabTitle = (title) => {
+  return title
+    .replace(/ - [^-]+$/, "") // Remove " - SiteName"
+    .replace(/ \| [^|]+$/, "") // Remove " | SiteName"
+    .trim();
+};
+
 // DOM References
 const bubblesArea = document.getElementById("bubblesArea");
 const activeFieldArea = document.getElementById("activeFieldArea");
@@ -483,7 +490,63 @@ document.addEventListener("click", (e) => {
   if (e.target.closest(".btn-add-link")) {
     handleAddClick();
   }
+  if (e.target.closest("#saveTabBtn")) {
+    handleSaveTabBtnClick();
+  }
 });
+
+const handleSaveTabBtnClick = async () => {
+  if (typeof chrome === "undefined" || !chrome.tabs) {
+    showToast("Extension API not available.");
+    return;
+  }
+
+  const saveTabBtn = document.getElementById("saveTabBtn");
+  const originalHTML = saveTabBtn.innerHTML;
+  saveTabBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+  saveTabBtn.style.opacity = "0.7";
+  saveTabBtn.disabled = true;
+
+  try {
+    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+    
+    if (!tab || !tab.url) {
+      showToast("Could not detect active tab.");
+      return;
+    }
+
+    if (tab.url.startsWith("chrome://") || tab.url.startsWith("edge://") || tab.url.startsWith("about:")) {
+      showToast("Internal pages cannot be saved.");
+      return;
+    }
+
+    const fieldName = cleanTabTitle(tab.title || "New Link");
+    const fieldUrl = tab.url;
+
+    if (currentFields.includes(fieldName)) {
+      showToast(`"${fieldName}" is already saved!`);
+      activeField = fieldName;
+      renderAllFields();
+    } else {
+      await addFieldToFirestore(currentUser.uid, fieldName);
+      currentFields.push(fieldName);
+      currentLinks[fieldName] = fieldUrl;
+      await saveLinkToFirestore(currentUser.uid, fieldName, fieldUrl);
+      
+      activeField = fieldName;
+      renderAllFields();
+      showToast(`${fieldName} saved! ✓`);
+      trackEvent('link_saved_auto', { name: fieldName });
+    }
+  } catch (error) {
+    console.error(error);
+    showToast("Failed to save. Try again.");
+  } finally {
+    saveTabBtn.innerHTML = originalHTML;
+    saveTabBtn.style.opacity = "1";
+    saveTabBtn.disabled = false;
+  }
+};
 
 // ===== Sign Out =====
 signOutBtn.addEventListener("click", () => {
