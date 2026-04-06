@@ -52,21 +52,30 @@ authForm.addEventListener("submit", async (e) => {
     // onAuthStateChanged handles the redirect
   } catch (error) {
     errorMsg.textContent = getFriendlyError(error.code, error.message);
-  } finally {
     setLoading(false);
   }
 });
 
 const googleBtn = document.getElementById("googleBtn");
+const googleBtnContent = document.getElementById("googleBtnContent");
+const googleBtnSpinner = document.getElementById("googleBtnSpinner");
+
+const setGoogleLoading = (loading) => {
+  googleBtn.disabled = loading;
+  if (googleBtnContent) googleBtnContent.style.display = loading ? "none" : "inline";
+  if (googleBtnSpinner) googleBtnSpinner.style.display = loading ? "inline" : "none";
+};
 
 // Handle Google Sign-in
 googleBtn.addEventListener("click", async () => {
   errorMsg.textContent = "";
+  setGoogleLoading(true);
   
   if (typeof chrome !== "undefined" && chrome.identity) {
     chrome.identity.getAuthToken({ interactive: true }, async (token) => {
       if (chrome.runtime.lastError) {
         errorMsg.textContent = "Extension Error: " + chrome.runtime.lastError.message;
+        setGoogleLoading(false);
         return;
       }
       try {
@@ -75,10 +84,12 @@ googleBtn.addEventListener("click", async () => {
         // onAuthStateChanged handles the redirect
       } catch (error) {
         errorMsg.textContent = getFriendlyError(error.code, error.message);
+        setGoogleLoading(false);
       }
     });
   } else {
     errorMsg.textContent = "Chrome Identity API not available.";
+    setGoogleLoading(false);
   }
 });
 
