@@ -473,26 +473,58 @@ const renderAllFields = () => {
   if (pinnedFields.length > 0) {
     const groupEl = document.createElement("div");
     groupEl.classList.add("category-section");
-    groupEl.innerHTML = `<h3 class="category-title"><i class="fas fa-thumbtack"></i> Pinned</h3>`;
+    groupEl.innerHTML = `<button class="category-header" disabled style="cursor: default;">
+      <span><i class="fas fa-thumbtack"></i> Pinned</span>
+    </button>`;
+    
+    // We don't need a wrapper for Pinned since it doesn't collapse, but we use the same structure for consistency
+    const gridWrapper = document.createElement("div");
+    gridWrapper.classList.add("bubbles-grid-wrapper");
+    
     const container = document.createElement("div");
     makeContainerSortable(container, "Pinned");
     pinnedFields.forEach((fieldName) => {
       container.appendChild(createBubble(fieldName, globalIndex++));
     });
-    groupEl.appendChild(container);
+    
+    gridWrapper.appendChild(container);
+    groupEl.appendChild(gridWrapper);
     bubblesArea.appendChild(groupEl);
   }
 
   Object.keys(categoryGroups).sort().forEach(cat => {
     const groupEl = document.createElement("div");
     groupEl.classList.add("category-section");
-    groupEl.innerHTML = `<h3 class="category-title">${cat}</h3>`;
+    const isOpen = isCategoryOpen(cat);
+    groupEl.innerHTML = `<button class="category-header">
+      <span>${cat}</span>
+      <i class="fas fa-chevron-${isOpen ? 'down' : 'right'}"></i>
+    </button>`;
+    
+    const gridWrapper = document.createElement("div");
+    gridWrapper.classList.add("bubbles-grid-wrapper");
+    if (!isOpen) gridWrapper.classList.add("collapsed");
+    
     const container = document.createElement("div");
     makeContainerSortable(container, cat);
     categoryGroups[cat].forEach((fieldName) => {
       container.appendChild(createBubble(fieldName, globalIndex++));
     });
-    groupEl.appendChild(container);
+    
+    gridWrapper.appendChild(container);
+    groupEl.appendChild(gridWrapper);
+    
+    const headerBtn = groupEl.querySelector(".category-header");
+    headerBtn.addEventListener("click", () => {
+      const newState = toggleCategoryState(cat);
+      headerBtn.querySelector("i.fa-chevron-down, i.fa-chevron-right").className = `fas fa-chevron-${newState ? 'down' : 'right'}`;
+      if (newState) {
+        gridWrapper.classList.remove("collapsed");
+      } else {
+        gridWrapper.classList.add("collapsed");
+      }
+    });
+
     bubblesArea.appendChild(groupEl);
   });
 
