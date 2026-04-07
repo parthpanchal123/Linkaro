@@ -73,8 +73,11 @@ const googleBtnSpinner = document.getElementById("googleBtnSpinner");
 
 const setGoogleLoading = (loading) => {
   googleBtn.disabled = loading;
-  if (googleBtnContent) googleBtnContent.style.display = loading ? "none" : "inline";
-  if (googleBtnSpinner) googleBtnSpinner.style.display = loading ? "inline" : "none";
+  if (loading) {
+    googleBtn.classList.add("loading");
+  } else {
+    googleBtn.classList.remove("loading");
+  }
 };
 
 // Handle Google Sign-in using chrome.identity (MV3 compliant, no popup/redirect)
@@ -106,8 +109,11 @@ googleBtn.addEventListener("click", async () => {
 
 const setLoading = (loading) => {
   submitBtn.disabled = loading;
-  btnText.style.display = loading ? "none" : "inline";
-  btnSpinner.style.display = loading ? "inline" : "none";
+  if (loading) {
+    submitBtn.classList.add("loading");
+  } else {
+    submitBtn.classList.remove("loading");
+  }
 };
 
 const getFriendlyError = (code, message) => {

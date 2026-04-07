@@ -231,6 +231,22 @@ button:disabled {
   transform: translateY(-1px);
 }
 
+/* Specific Fix for Button Spinners showing on load */
+#btnSpinner, #googleBtnSpinner {
+  display: none !important;
+}
+
+/* Show spinners ONLY when button has .loading class */
+button.loading #btnSpinner, 
+button.loading #googleBtnSpinner {
+  display: inline-block !important;
+}
+
+button.loading #btnText,
+button.loading #googleBtnContent {
+  display: none !important;
+}
+
 .divider {
   display: flex;
   align-items: center;
