@@ -636,10 +636,63 @@ button:disabled {
 /* ===== BUBBLES AREA ===== */
 .bubbles-area {
   display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
+  flex-direction: column;
+  gap: 24px;
   padding: 12px 16px 24px;
-  justify-content: center;
+}
+
+.category-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* Category Headers */
+.category-header {
+  width: 100%;
+  background: transparent;
+  border: none;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  margin-bottom: 8px;
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  transition: all 0.2s ease;
+}
+
+.category-header:hover:not([disabled]) {
+  background: rgba(148, 163, 184, 0.1);
+  color: var(--text-primary);
+}
+
+.category-header i {
+  font-size: 11px;
+}
+
+/* Category Grid Accordion Implementation */
+.bubbles-grid-wrapper {
+  display: grid;
+  grid-template-rows: 1fr;
+  transition: grid-template-rows 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.bubbles-grid-wrapper.collapsed {
+  grid-template-rows: 0fr;
+}
+
+.bubbles-container {
+  overflow: hidden;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding-bottom: 8px;
 }
 
 @keyframes fadeInUp {
@@ -667,10 +720,21 @@ button:disabled {
   align-items: center;
   gap: 6px;
   transition: all var(--transition-fast);
-  cursor: pointer;
+  cursor: grab;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
   animation: fadeInUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) both;
   opacity: 0;
+}
+
+.bubble:active {
+  cursor: grabbing;
+}
+
+.bubble.dragging {
+  opacity: 0.5;
+  transform: scale(1.05);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+  z-index: 100;
 }
 
 .bubble:hover {
@@ -702,6 +766,26 @@ button:disabled {
   padding: 0 16px 32px;
   display: flex;
   flex-direction: column;
+}
+
+.category-select {
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  font-weight: 600;
+  background: rgba(241, 245, 249, 0.7);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  border: none;
+  color: var(--text-primary);
+  outline: none;
+  font-family: inherit;
+  cursor: pointer;
+  appearance: auto;
+}
+
+.category-select:hover {
+  background: rgba(226, 232, 240, 0.9);
 }
 
 /* ===== Info Bar ===== */
