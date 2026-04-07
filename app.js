@@ -449,7 +449,6 @@ const renderAllFields = () => {
     bubble.classList.add("bubble");
     if (fieldName === activeField) bubble.classList.add("active");
     bubble.style.animationDelay = `${index * 15}ms`;
-    bubble.setAttribute("draggable", "true");
     bubble.setAttribute("data-field-name", fieldName);
     
     bubble.innerHTML = `${getIconHTML(fieldName, currentLinks[fieldName])} <span class="bubble-text">${fieldName}</span>`;
@@ -466,50 +465,123 @@ const renderAllFields = () => {
     container.classList.add("bubbles-container");
     if (searchQuery) container.classList.add("search-active");
     container.setAttribute("data-category", categoryName);
-    
-    let draggedElement = null;
 
-    container.addEventListener("dragstart", (e) => {
-      if (!e.target.classList.contains("bubble")) return;
-      draggedElement = e.target;
-      e.target.classList.add("dragging");
-      e.dataTransfer.effectAllowed = "move";
-      e.dataTransfer.setData("text/plain", e.target.getAttribute("data-field-name"));
-      // Needed for Chrome/Windows dragging bug
-      setTimeout(() => e.target.style.opacity = "0.5", 0); 
+    let dragging = null;       // the pill being dragged
+    let placeholder = null;    // the slot indicator
+    let startX = 0, startY = 0;
+    let hasMoved = false;
+
+    const DRAG_THRESHOLD = 6; // px before drag kicks in
+
+    const getDragOrder = () =>
+      [...container.querySelectorAll(".bubble:not(.bubble--ghost)")]
+        .map(b => b.getAttribute("data-field-name"));
+
+    const cleanup = () => {
+      if (dragging) {
+        dragging.classList.remove("dragging");
+        dragging.style.cssText = "";
+        dragging = null;
+      }
+      placeholder?.remove();
+      placeholder = null;
+      hasMoved = false;
+      document.body.style.userSelect = "";
+    };
+
+    container.addEventListener("pointerdown", (e) => {
+      const pill = e.target.closest(".bubble");
+      if (!pill || !container.contains(pill)) return;
+
+      // Only primary pointer (left mouse / touch)
+      if (e.button !== undefined && e.button !== 0) return;
+
+      startX = e.clientX;
+      startY = e.clientY;
+      dragging = pill;
+      hasMoved = false;
+      document.body.style.userSelect = "none";
+      e.preventDefault(); // prevents text selection jitter
     });
 
-    container.addEventListener("dragover", (e) => {
-      e.preventDefault();
-      e.dataTransfer.dropEffect = "move";
-      const target = e.target.closest(".bubble");
-      if (target && target !== draggedElement && target.parentNode === container) {
-        const rect = target.getBoundingClientRect();
-        const next = (e.clientX - rect.left) / (rect.right - rect.left) > 0.5;
-        container.insertBefore(draggedElement, next && target.nextSibling || target);
+    document.addEventListener("pointermove", (e) => {
+      if (!dragging) return;
+
+      const dx = e.clientX - startX;
+      const dy = e.clientY - startY;
+
+      if (!hasMoved) {
+        if (Math.hypot(dx, dy) < DRAG_THRESHOLD) return;
+        hasMoved = true;
+
+        // Create placeholder with the same dimensions
+        placeholder = document.createElement("div");
+        placeholder.className = "bubble bubble--placeholder";
+        placeholder.style.cssText = `
+          width: ${dragging.offsetWidth}px;
+          visibility: hidden;
+          pointer-events: none;
+          flex-shrink: 0;
+        `;
+        dragging.after(placeholder);
+        dragging.classList.add("dragging");
+        dragging.style.cssText = `
+          position: fixed;
+          z-index: 9999;
+          pointer-events: none;
+          width: ${dragging.offsetWidth}px;
+          left: ${dragging.getBoundingClientRect().left}px;
+          top: ${dragging.getBoundingClientRect().top}px;
+          margin: 0;
+          transition: none;
+          box-shadow: 0 8px 24px rgba(0,0,0,0.18);
+          transform: scale(1.04);
+          opacity: 0.95;
+        `;
+      }
+
+      // Move the floating pill
+      dragging.style.left = `${e.clientX - startX + parseFloat(dragging.style.left)}px`;
+      dragging.style.top  = `${e.clientY - startY + parseFloat(dragging.style.top)}px`;
+      startX = e.clientX;
+      startY = e.clientY;
+
+      // Find where the placeholder should go
+      const siblings = [...container.querySelectorAll(".bubble:not(.dragging):not(.bubble--placeholder)")];
+      let insertBefore = null;
+      for (const sib of siblings) {
+        const rect = sib.getBoundingClientRect();
+        const midX = rect.left + rect.width / 2;
+        if (e.clientX < midX) { insertBefore = sib; break; }
+      }
+      if (insertBefore) {
+        container.insertBefore(placeholder, insertBefore);
+      } else {
+        container.appendChild(placeholder);
       }
     });
 
-    container.addEventListener("dragend", async (e) => {
-      e.target.classList.remove("dragging");
-      e.target.style.opacity = "1";
-      if (draggedElement) {
-        const newCategory = draggedElement.closest(".bubbles-container").getAttribute("data-category");
-        const fieldName = draggedElement.getAttribute("data-field-name");
-        
-        // Re-scrape the new order from DOM
-        const newFieldsOrder = [];
-        document.querySelectorAll(".bubble").forEach(b => {
-           let name = b.getAttribute("data-field-name");
-           if(!newFieldsOrder.includes(name)) newFieldsOrder.push(name);
-        });
-        
-        // Only elements visible are in newFieldsOrder. Merge with hidden (searched out) ones.
-        // It's safer to just reorder if there's no search query
-        if (!searchQuery && newFieldsOrder.length === currentFields.length) {
-          currentFields = newFieldsOrder;
+    document.addEventListener("pointerup", async (e) => {
+      if (!dragging) return;
+
+      if (hasMoved && placeholder) {
+        // Insert pill where placeholder is, then remove placeholder
+        container.insertBefore(dragging, placeholder);
+        placeholder.remove();
+        placeholder = null;
+
+        // Persist order
+        const newFieldsOrder = getDragOrder();
+        const allBubbles = [...document.querySelectorAll(".bubble:not(.bubble--ghost)")];
+        const fullOrder = allBubbles.map(b => b.getAttribute("data-field-name"))
+          .filter((v, i, a) => a.indexOf(v) === i);
+
+        if (!searchQuery && fullOrder.length === currentFields.length) {
+          currentFields = fullOrder;
           await saveReorderedFields(currentUser.uid, currentFields);
-          
+
+          const fieldName = dragging.getAttribute("data-field-name");
+          const newCategory = container.getAttribute("data-category");
           if (newCategory && newCategory !== "Pinned") {
             if (!currentMetadata[fieldName]) currentMetadata[fieldName] = {};
             if (currentMetadata[fieldName].category !== newCategory) {
@@ -519,7 +591,13 @@ const renderAllFields = () => {
           }
         }
       }
+
+      cleanup();
     });
+
+    // Cancel on escape or pointer cancel
+    document.addEventListener("keydown", (e) => { if (e.key === "Escape") cleanup(); });
+    document.addEventListener("pointercancel", cleanup);
   };
 
   let globalIndex = 0;

@@ -799,10 +799,18 @@ button:disabled {
 }
 
 .bubble.dragging {
-  opacity: 0.5;
-  transform: scale(1.05);
-  box-shadow: 0 8px 24px rgba(0,0,0,0.15);
-  z-index: 100;
+  /* The pill is now fixed-positioned and floating — no opacity needed here */
+  opacity: 0 !important;
+}
+
+/* Invisible slot that marks where the pill will be dropped */
+.bubble--placeholder {
+  background: transparent !important;
+  border: 2px dashed var(--accent-color) !important;
+  box-shadow: none !important;
+  opacity: 0.4 !important;
+  pointer-events: none;
+  animation: none;
 }
 
 .bubble:hover {
