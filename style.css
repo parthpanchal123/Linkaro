@@ -644,7 +644,7 @@ button:disabled {
 .category-section {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 0; /* Gap handled by internal container to avoid empty space when collapsed */
 }
 
 /* Category Headers */
@@ -680,20 +680,24 @@ button:disabled {
 .bubbles-grid-wrapper {
   display: grid;
   grid-template-rows: 1fr;
-  transition: grid-template-rows 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  overflow: hidden; /* Ensure clipping when height is 0 */
+  transition: grid-template-rows 0.3s cubic-bezier(0.4, 0, 0.2, 1), 
+              opacity 0.3s ease, 
+              visibility 0.3s;
+  overflow: hidden;
 }
 
 .bubbles-grid-wrapper.collapsed {
   grid-template-rows: 0fr;
+  opacity: 0;
+  visibility: hidden;
 }
 
 .bubbles-container {
-  overflow: hidden;
+  min-height: 0; /* MUST be 0 for track-rows 0fr to work properly in many browsers */
   display: flex;
   flex-wrap: wrap;
   gap: 12px;
-  padding-bottom: 12px; /* Added padding for breathing room when open */
+  padding: 4px 12px 16px; /* Padding inside the collapsible area */
 }
 
 @keyframes fadeInUp {
