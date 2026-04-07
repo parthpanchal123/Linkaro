@@ -772,6 +772,26 @@ button:disabled {
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
   animation: fadeInUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) both;
   opacity: 0;
+  /* Prevent pills from stretching full width */
+  max-width: 200px;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* The icon inside the bubble should never be clipped */
+.bubble i {
+  flex-shrink: 0;
+}
+
+/* The text span inside bubble handles the truncation */
+.bubble .bubble-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+  max-width: 150px;
 }
 
 .bubble:active {

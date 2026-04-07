@@ -452,7 +452,7 @@ const renderAllFields = () => {
     bubble.setAttribute("draggable", "true");
     bubble.setAttribute("data-field-name", fieldName);
     
-    bubble.innerHTML = `${getIconHTML(fieldName, currentLinks[fieldName])} <span class="bubble-text" style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 140px;">${fieldName}</span>`;
+    bubble.innerHTML = `${getIconHTML(fieldName, currentLinks[fieldName])} <span class="bubble-text">${fieldName}</span>`;
     
     bubble.addEventListener("click", () => {
       activeField = fieldName;
