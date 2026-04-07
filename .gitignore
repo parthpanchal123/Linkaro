@@ -3,3 +3,4 @@ firebase-config.js
 .agent
 node_modules/
 dist/
+pnpm-lock.yaml
