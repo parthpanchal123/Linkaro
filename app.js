@@ -721,10 +721,11 @@ const renderActiveRow = (fieldName, fieldValue) => {
     renderAllFields();
   });
 
-  // Label row: icon + name
+  // Label row: simple icon + field name (truncated via CSS)
   const fieldLabel = document.createElement("div");
   fieldLabel.classList.add("field-label");
-  fieldLabel.innerHTML = `${getIconHTML(fieldName, fieldValue)} <span>${fieldName}</span>`;
+  fieldLabel.title = fieldName;   // full name on hover tooltip
+  fieldLabel.innerHTML = `<i class="fas fa-link"></i><span>${fieldName}</span>`;
 
   const inputGroup = document.createElement("div");
   inputGroup.classList.add("field-input-group");

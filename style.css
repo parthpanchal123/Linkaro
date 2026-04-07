@@ -512,7 +512,7 @@ button:disabled {
 .field-row {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 10px;
   animation: fadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
   opacity: 0;
   transform: translateY(6px);
@@ -530,17 +530,33 @@ button:disabled {
   width: 100%;
 }
 
-/* Field label above the input */
+/* Field label — single line, truncated with ellipsis */
 .field-label {
   font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.06em;
+  font-weight: 600;
+  letter-spacing: 0.05em;
   text-transform: uppercase;
   color: var(--text-secondary);
-  margin-bottom: 4px;
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 5px;
+  min-width: 0;              /* required for ellipsis in flex */
+  overflow: hidden;          /* clip the row */
+}
+
+.field-label span {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+
+/* Icon inside field-label — never clipped */
+.field-label img,
+.field-label i {
+  flex-shrink: 0;
+  font-size: 12px;
+  opacity: 0.7;
 }
 
 /* URL input — full width, clear focus ring */
