@@ -359,7 +359,9 @@ const getIconHTML = (fieldName, url) => {
 // ===== Auth State Listener =====
 auth.onAuthStateChanged(async (user) => {
   if (!user) {
-    window.location.href = "auth.html";
+    // Use chrome.runtime.getURL in extension context for safe MV3 navigation
+    const isExtension = typeof chrome !== "undefined" && chrome.runtime && chrome.runtime.getURL;
+    window.location.href = isExtension ? chrome.runtime.getURL("auth.html") : "auth.html";
     return;
   }
 

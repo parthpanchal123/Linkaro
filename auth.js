@@ -18,7 +18,8 @@ let isSignUp = false;
 // If already logged in, go straight to main page
 auth.onAuthStateChanged((user) => {
   if (user) {
-    window.location.href = "link_index.html";
+    const isExtension = typeof chrome !== "undefined" && chrome.runtime && chrome.runtime.getURL;
+    window.location.href = isExtension ? chrome.runtime.getURL("link_index.html") : "link_index.html";
   }
 });
 
@@ -31,7 +32,12 @@ toggleBtn.addEventListener("click", (e) => {
     ? "Already have an account? "
     : "Don't have an account? ";
   toggleBtn.textContent = isSignUp ? "Log In" : "Sign Up";
+  
+  // Reset form and errors for clean state
   errorMsg.textContent = "";
+  emailInput.value = "";
+  passwordInput.value = "";
+  emailInput.focus();
 });
 
   // Handle form submission
