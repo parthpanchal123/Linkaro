@@ -357,7 +357,20 @@ button:disabled {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  flex-wrap: nowrap;
   padding: 20px 16px 12px;
+  gap: 8px;
+}
+
+.app-header > div:first-child {
+  min-width: 0;
+  overflow: hidden;
+}
+
+.app-header > div:last-child {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
   gap: 8px;
 }
 
@@ -365,11 +378,13 @@ button:disabled {
   font-size: 20px;
   font-weight: 700;
   letter-spacing: -0.5px;
+  white-space: nowrap;
 }
 
 .app-header i {
   font-size: 20px;
   color: var(--text-primary);
+  flex-shrink: 0;
 }
 
 /* ===== Add Link / Save Tab Buttons ===== */
