@@ -12,21 +12,25 @@
     "activeTab",
     "storage"
   ],
+  "host_permissions": [
+    "https://identitytoolkit.googleapis.com/*",
+    "https://securetoken.googleapis.com/*",
+    "https://firestore.googleapis.com/*",
+    "https://www.googleapis.com/*"
+  ],
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self'; connect-src https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://firestore.googleapis.com https://www.googleapis.com https://www.google-analytics.com;"
+  },
   "web_accessible_resources": [
     {
       "resources": [
         "auth.html",
         "link_index.html",
         "style.css",
-        "auth.js",
         "app.js",
-        "analytics.js",
-        "firebase-config.js",
-        "firebase-db.js",
-        "firebase-app-compat.js",
-        "firebase-auth-compat.js",
-        "firebase-firestore-compat.js",
-        "link_icon.png"
+        "link_icon.png",
+        "dist/firebase-bundle.js",
+        "dist/auth-bundle.js"
       ],
       "matches": ["<all_urls>"]
     }
@@ -38,4 +42,4 @@
       "https://www.googleapis.com/auth/userinfo.profile"
     ]
   }
-}
+}
