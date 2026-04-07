@@ -698,101 +698,91 @@ const renderAllFields = () => {
 
 const renderActiveRow = (fieldName, fieldValue) => {
   activeFieldArea.innerHTML = "";
-  
+
   const row = document.createElement("div");
   row.classList.add("field-row");
   row.setAttribute("data-field", fieldName);
 
-  // Icon Wrapper
-  const iconWrapper = document.createElement("span");
-  iconWrapper.classList.add("field-icon");
-  iconWrapper.innerHTML = getIconHTML(fieldName, fieldValue);
-
-  // Input
+  // ── Input + Close ───────────────────────────────────────
   const input = document.createElement("input");
-  input.setAttribute("placeholder", "https://url-for-" + fieldName);
-  input.setAttribute("type", "text");
+  input.setAttribute("type", "url");
   input.setAttribute("id", "field-" + fieldName);
+  input.setAttribute("placeholder", "https://…");
+  input.setAttribute("autocomplete", "off");
   input.value = fieldValue;
 
-  const inputGroup = document.createElement("div");
-  inputGroup.classList.add("field-input-group");
-  inputGroup.appendChild(iconWrapper);
-  inputGroup.appendChild(input);
-
-  // Close Button for the Sticky Sheet
   const closeBtn = document.createElement("button");
   closeBtn.classList.add("btn-close-editor");
   closeBtn.innerHTML = '<i class="fas fa-times"></i>';
-  closeBtn.title = "Close Editor";
+  closeBtn.title = "Close";
+  closeBtn.setAttribute("aria-label", "Close editor");
   closeBtn.addEventListener("click", () => {
     activeField = null;
     renderAllFields();
   });
+
+  // Label row: icon + name
+  const fieldLabel = document.createElement("div");
+  fieldLabel.classList.add("field-label");
+  fieldLabel.innerHTML = `${getIconHTML(fieldName, fieldValue)} <span>${fieldName}</span>`;
+
+  const inputGroup = document.createElement("div");
+  inputGroup.classList.add("field-input-group");
+  inputGroup.appendChild(input);
   inputGroup.appendChild(closeBtn);
 
-  // Save button
+  const inputWrapper = document.createElement("div");
+  inputWrapper.style.cssText = "flex:1; min-width:0; display:flex; flex-direction:column; gap:6px;";
+  inputWrapper.appendChild(fieldLabel);
+  inputWrapper.appendChild(inputGroup);
+
+  // ── Save button ─────────────────────────────────────────
   const saveBtn = document.createElement("button");
   saveBtn.classList.add("btn-save");
   saveBtn.innerHTML = '<i class="fas fa-check"></i> Save';
   saveBtn.title = "Save";
-  saveBtn.disabled = true; // Disabled until a change is detected
+  saveBtn.disabled = true;
 
-  // Auto-enable/disable based on changes
   input.addEventListener("input", () => {
-    const currentVal = input.value.trim();
-    saveBtn.disabled = (currentVal === fieldValue);
+    saveBtn.disabled = (input.value.trim() === fieldValue);
   });
 
   saveBtn.addEventListener("click", async () => {
     const url = input.value.trim();
-    
-    if (!url) {
-      showToast("Link cannot be empty! ❌");
-      input.focus();
-      return;
-    }
-
-    const originalBtnHTML = saveBtn.innerHTML;
+    if (!url) { showToast("Link cannot be empty! ❌"); input.focus(); return; }
+    const originalHTML = saveBtn.innerHTML;
     saveBtn.disabled = true;
-    saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+    saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving…';
     try {
       await saveLinkToFirestore(currentUser.uid, fieldName, url);
       currentLinks[fieldName] = url;
+      fieldValue = url;
       showToast(fieldName + " saved ✓");
       trackEvent('link_saved', { name: fieldName });
-      
-      // Update the "original" value so the button disables again
-      fieldValue = url; 
-    } catch (error) {
+    } catch {
       showToast("Failed to save. Try again.");
       saveBtn.disabled = false;
     } finally {
-      saveBtn.innerHTML = originalBtnHTML;
+      saveBtn.innerHTML = originalHTML;
     }
   });
 
-  // Copy button
+  // ── Copy button ──────────────────────────────────────────
   const copyBtn = document.createElement("button");
   copyBtn.classList.add("btn-copy");
   copyBtn.innerHTML = '<i class="fas fa-copy"></i> Copy';
   copyBtn.title = "Copy to clipboard";
   copyBtn.addEventListener("click", async () => {
     const url = input.value;
-    if (!url) {
-      showToast("No link to copy ❌");
-      return;
-    }
+    if (!url) { showToast("No link to copy ❌"); return; }
     try {
       await navigator.clipboard.writeText(url);
-      showToast("Copied: " + url);
+      showToast("Copied ✓");
       trackEvent('link_copied', { name: fieldName });
-    } catch (error) {
-      showToast("Clipboard permission denied.");
-    }
+    } catch { showToast("Clipboard permission denied."); }
   });
 
-  // Delete button
+  // ── Delete button ────────────────────────────────────────
   const deleteBtn = document.createElement("button");
   deleteBtn.classList.add("btn-delete");
   deleteBtn.innerHTML = '<i class="fas fa-trash"></i> Delete';
@@ -805,107 +795,88 @@ const renderActiveRow = (fieldName, fieldValue) => {
       await deleteFieldFromFirestore(currentUser.uid, fieldName);
       currentFields = currentFields.filter((f) => f !== fieldName);
       delete currentLinks[fieldName];
-      activeField = null; // Forces recalculation of activeField
+      activeField = null;
       renderAllFields();
       trackEvent('link_deleted', { name: fieldName });
       showToast(fieldName + " deleted");
-    } catch (error) {
+    } catch {
       showToast("Failed to delete. Try again.");
       deleteBtn.disabled = false;
     }
   });
 
+  // ── Pin button ───────────────────────────────────────────
   const meta = currentMetadata[fieldName] || {};
   const isPinned = meta.isPinned || false;
-
   const pinBtn = document.createElement("button");
-  pinBtn.classList.add("btn-copy"); // utilizing existing subtle styling
-  pinBtn.innerHTML = isPinned ? '<i class="fas fa-thumbtack" style="opacity: 0.5;"></i> Unpin' : '<i class="fas fa-thumbtack"></i> Pin';
-  pinBtn.title = isPinned ? "Unpin link" : "Pin link";
+  pinBtn.classList.add("btn-copy");
+  pinBtn.innerHTML = isPinned
+    ? '<i class="fas fa-thumbtack" style="opacity:0.5"></i> Unpin'
+    : '<i class="fas fa-thumbtack"></i> Pin';
+  pinBtn.title = isPinned ? "Unpin" : "Pin";
   pinBtn.addEventListener("click", async () => {
     const newState = !isPinned;
-    
     if (newState) {
       const pinnedCount = Object.values(currentMetadata).filter(m => m.isPinned).length;
-      if (pinnedCount >= 5) {
-        showToast("Maximum of 5 pins allowed!");
-        return;
-      }
+      if (pinnedCount >= 5) { showToast("Maximum of 5 pins allowed!"); return; }
     }
-
     if (!currentMetadata[fieldName]) currentMetadata[fieldName] = {};
     const oldState = currentMetadata[fieldName].isPinned;
     currentMetadata[fieldName].isPinned = newState;
-    
     try {
       await updateFieldMetadata(currentUser.uid, fieldName, { isPinned: newState });
       renderAllFields();
-      showToast(newState ? "Pinned" : "Unpinned");
-    } catch (e) {
-      console.error(e);
+      showToast(newState ? "Pinned 📌" : "Unpinned");
+    } catch {
       showToast("Failed to pin. Try again.");
-      currentMetadata[fieldName].isPinned = oldState; // revert locally
+      currentMetadata[fieldName].isPinned = oldState;
     }
   });
 
+  // ── Category select ──────────────────────────────────────
   const categorySelect = document.createElement("select");
   categorySelect.classList.add("category-select");
   const categories = [...new Set(Object.values(currentMetadata).map(m => m.category).filter(Boolean))];
   if (!categories.includes("Uncategorized")) categories.push("Uncategorized");
-  
   categorySelect.innerHTML = categories.map(cat => `<option value="${cat}">${cat}</option>`).join("");
-  categorySelect.innerHTML += `<option value="__new__">+ New Category...</option>`;
+  categorySelect.innerHTML += `<option value="__new__">+ New Category…</option>`;
   categorySelect.value = meta.category || "Uncategorized";
-  
+
   categorySelect.addEventListener("change", async (e) => {
     let newCat = e.target.value;
     if (newCat === "__new__") {
-       newCat = await showSimplePromptModal("New Category", "Enter new category name:");
-       if (!newCat || !newCat.trim()) {
-          categorySelect.value = meta.category || "Uncategorized";
-          return;
-       }
-       newCat = newCat.trim();
+      newCat = await showSimplePromptModal("New Category", "Enter new category name:");
+      if (!newCat?.trim()) { categorySelect.value = meta.category || "Uncategorized"; return; }
+      newCat = newCat.trim();
     }
     const oldCat = currentMetadata[fieldName]?.category || "Uncategorized";
     if (!currentMetadata[fieldName]) currentMetadata[fieldName] = {};
     currentMetadata[fieldName].category = newCat;
-    
     try {
       await updateFieldMetadata(currentUser.uid, fieldName, { category: newCat });
       renderAllFields();
       showToast(`Moved to ${newCat}`);
-    } catch (err) {
-      console.error(err);
+    } catch {
       showToast("Failed to move category.");
       currentMetadata[fieldName].category = oldCat;
       categorySelect.value = oldCat;
     }
   });
 
+  // ── Options row ──────────────────────────────────────────
   const optionsGroup = document.createElement("div");
   optionsGroup.classList.add("field-options-group");
-  optionsGroup.style.display = "flex";
-  optionsGroup.style.alignItems = "center";
-  optionsGroup.style.gap = "8px";
   optionsGroup.appendChild(categorySelect);
   optionsGroup.appendChild(pinBtn);
 
+  // ── Actions row: Delete ← · · · Copy Save → ─────────────
   const actionGroup = document.createElement("div");
   actionGroup.classList.add("field-actions");
-  
-  const rightActions = document.createElement("div");
-  rightActions.style.display = "flex";
-  rightActions.style.gap = "8px";
-  rightActions.style.marginLeft = "auto";
-  
-  rightActions.appendChild(copyBtn);
-  rightActions.appendChild(saveBtn);
-  
   actionGroup.appendChild(deleteBtn);
-  actionGroup.appendChild(rightActions);
+  actionGroup.appendChild(copyBtn);
+  actionGroup.appendChild(saveBtn);
 
-  row.appendChild(inputGroup);
+  row.appendChild(inputWrapper);
   row.appendChild(optionsGroup);
   row.appendChild(actionGroup);
   activeFieldArea.appendChild(row);
