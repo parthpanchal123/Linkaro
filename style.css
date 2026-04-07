@@ -363,8 +363,11 @@ button:disabled {
 }
 
 .app-header > div:first-child {
-  min-width: 0;
-  overflow: hidden;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;        /* lets it shrink so right buttons don't wrap */
+  flex: 1 1 0;
 }
 
 .app-header > div:last-child {
@@ -379,6 +382,12 @@ button:disabled {
   font-weight: 700;
   letter-spacing: -0.5px;
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.app-header img {
+  flex-shrink: 0;        /* icon never squishes */
 }
 
 .app-header i {
