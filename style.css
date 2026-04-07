@@ -825,10 +825,10 @@ button:disabled {
   border-radius: var(--radius-sm);
   font-size: 13px;
   font-weight: 600;
-  background: rgba(241, 245, 249, 0.7);
+  background: var(--border-color);
   backdrop-filter: blur(4px);
   -webkit-backdrop-filter: blur(4px);
-  border: none;
+  border: 1px solid rgba(255, 255, 255, 0.1);
   color: var(--text-primary);
   outline: none;
   font-family: inherit;
@@ -837,7 +837,17 @@ button:disabled {
 }
 
 .category-select:hover {
-  background: rgba(226, 232, 240, 0.9);
+  background: rgba(148, 163, 184, 0.2);
+}
+
+:root[data-theme="dark"] .category-select {
+  background: rgba(30, 41, 59, 0.8);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+:root[data-theme="dark"] .category-select option {
+  background: #1e293b;
+  color: #f8fafc;
 }
 
 /* ===== Info Bar ===== */
