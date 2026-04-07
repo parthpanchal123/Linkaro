@@ -1,0 +1,19 @@
+{
+  "name": "linkaro",
+  "version": "1.0.0",
+  "description": "**Linkaro** is a premium, cloud-synced browser extension designed to store, manage, and share your social and professional links with elegance and efficiency. Built with **Manifest V3** and **Firebase**, it keeps your digital ecosystem synchronized across all your devices.",
+  "main": "analytics.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "build": "$env:BUILD_ENTRY=\\\"firebase-bundle\\\"; npx vite build; $env:BUILD_ENTRY=\\\"auth-bundle\\\"; npx vite build"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "firebase": "^12.11.0",
+    "vite": "^8.0.6"
+  }
+}

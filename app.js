@@ -357,9 +357,8 @@ const getIconHTML = (fieldName, url) => {
 };
 
 // ===== Auth State Listener =====
-auth.onAuthStateChanged(async (user) => {
+window.onAuthStateChanged(window.auth, async (user) => {
   if (!user) {
-    // Use chrome.runtime.getURL in extension context for safe MV3 navigation
     const isExtension = typeof chrome !== "undefined" && chrome.runtime && chrome.runtime.getURL;
     window.location.href = isExtension ? chrome.runtime.getURL("auth.html") : "auth.html";
     return;
@@ -948,7 +947,7 @@ const handleSaveTabBtnClick = async () => {
 // ===== Sign Out =====
 signOutBtn.addEventListener("click", () => {
   trackEvent('logout');
-  auth.signOut();
+  window.signOut(); // Provided by firebase-bundle via app-entry.js
 });
 
 // ===== Helpers =====

@@ -1,3 +1,5 @@
 manifest.json
 firebase-config.js
 .agent
+node_modules/
+dist/

@@ -132,15 +132,10 @@
   <!-- Toast Notification -->
   <div id="toast" class="toast"></div>
 
-  <!-- Firebase SDKs -->
-  <script src="./firebase-app-compat.js"></script>
-  <script src="./firebase-auth-compat.js"></script>
-  <script src="./firebase-firestore-compat.js"></script>
+  <!-- Firebase + DB Bundle (MV3-safe, no remote code) -->
+  <script src="./dist/firebase-bundle.js"></script>
 
-  <!-- App Scripts -->
-  <script src="./firebase-config.js"></script>
-  <script src="./analytics.js"></script>
-  <script src="./firebase-db.js"></script>
+  <!-- Main App (uses globals exposed by firebase-bundle) -->
   <script src="./app.js"></script>
 </body>
 
