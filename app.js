@@ -50,8 +50,31 @@ if (themeToggleBtn) {
 let currentUser = null;
 let currentFields = [];
 let currentLinks = {};
+let currentMetadata = {};
 let activeField = null;
 let searchQuery = "";
+
+// Category Accordion State Handlers
+const getCategoryStates = () => {
+  try {
+    const data = localStorage.getItem('linkaro_category_state');
+    return data ? JSON.parse(data) : {};
+  } catch(e) { return {}; }
+};
+
+const toggleCategoryState = (cat) => {
+  const states = getCategoryStates();
+  const currentState = states.hasOwnProperty(cat) ? states[cat] : true;
+  states[cat] = !currentState;
+  localStorage.setItem('linkaro_category_state', JSON.stringify(states));
+  return states[cat];
+};
+
+const isCategoryOpen = (cat) => {
+  if (cat === "Pinned") return true; // Always true
+  const states = getCategoryStates();
+  return states.hasOwnProperty(cat) ? states[cat] : true; // Default to true if not found
+};
 
 const searchClearBtn = document.getElementById("searchClearBtn");
 const linkCountEl = document.getElementById("linkCount");
@@ -167,6 +190,66 @@ const showConfirmModal = (title, description) => {
   });
 };
 
+const showSimplePromptModal = (title, description, placeholder = "Type here...") => {
+  return new Promise((resolve) => {
+    const pModal = document.getElementById("simplePromptModal");
+    const pTitle = document.getElementById("promptModalTitle");
+    const pDesc = document.getElementById("promptModalDesc");
+    const pInput = document.getElementById("promptModalInput");
+    const pOkBtn = document.getElementById("promptModalOkBtn");
+    const pCancelBtn = document.getElementById("promptModalCancelBtn");
+
+    if (pTitle) pTitle.textContent = title;
+    if (pDesc) pDesc.textContent = description;
+    if (pInput) {
+      pInput.placeholder = placeholder;
+      pInput.value = "";
+    }
+
+    pModal.classList.add("show");
+    setTimeout(() => { if(pInput) pInput.focus(); }, 50);
+
+    const cleanup = () => {
+      pModal.classList.remove("show");
+      pOkBtn.removeEventListener("click", handleOk);
+      pCancelBtn.removeEventListener("click", handleCancel);
+      document.removeEventListener("keydown", handleKey);
+    };
+
+    const handleOk = () => {
+      const val = pInput ? pInput.value.trim() : "";
+      if (!val) {
+        const content = pModal.querySelector('.modal');
+        if (content) {
+          content.classList.remove('shake');
+          void content.offsetWidth;
+          content.classList.add('shake');
+        }
+        if (pInput) pInput.focus();
+        return;
+      }
+      cleanup();
+      resolve(val);
+    };
+
+    const handleCancel = () => {
+      cleanup();
+      resolve(null);
+    };
+
+    const handleKey = (e) => {
+      if (pModal.classList.contains("show")) {
+        if (e.key === "Enter") handleOk();
+        if (e.key === "Escape") handleCancel();
+      }
+    };
+
+    pOkBtn.addEventListener("click", handleOk);
+    pCancelBtn.addEventListener("click", handleCancel);
+    document.addEventListener("keydown", handleKey);
+  });
+};
+
 // ===== Icon Map & Dynamic Fetcher =====
 const getIconHTML = (fieldName, url) => {
   const knownFA = {
@@ -237,6 +320,7 @@ auth.onAuthStateChanged(async (user) => {
       const data = await initUserData(user.uid);
       currentFields = data.fields || [];
       currentLinks = data.links || {};
+      currentMetadata = data.metadata || {};
 
     renderAllFields();
   } catch (error) {
@@ -270,7 +354,12 @@ const renderAllFields = () => {
       const matchName = fieldName.toLowerCase().includes(searchQuery);
       const url = currentLinks[fieldName] || "";
       const matchUrl = url.toLowerCase().includes(searchQuery);
-      return matchName || matchUrl;
+      
+      const meta = currentMetadata[fieldName] || {};
+      const cat = (meta.category || "Uncategorized").toLowerCase();
+      const matchCat = cat.includes(searchQuery);
+      
+      return matchName || matchUrl || matchCat;
     });
   }
 
@@ -281,19 +370,34 @@ const renderAllFields = () => {
 
   if (displayFields.length > 0) {
     if (!displayFields.includes(activeField)) {
-      if (displayFields.includes("Gmail")) activeField = "Gmail";
-      else activeField = displayFields[0];
+      activeField = null; // Don't auto-select initially
     }
   } else {
     activeField = null;
   }
 
-  // Render Bubbles with staggered animation
-  displayFields.forEach((fieldName, index) => {
+  // Group fields
+  let pinnedFields = [];
+  let categoryGroups = {};
+
+  displayFields.forEach(fieldName => {
+    const meta = currentMetadata[fieldName] || {};
+    if (meta.isPinned) {
+      pinnedFields.push(fieldName);
+    } else {
+      const cat = meta.category || "Uncategorized";
+      if (!categoryGroups[cat]) categoryGroups[cat] = [];
+      categoryGroups[cat].push(fieldName);
+    }
+  });
+
+  const createBubble = (fieldName, index) => {
     const bubble = document.createElement("button");
     bubble.classList.add("bubble");
     if (fieldName === activeField) bubble.classList.add("active");
-    bubble.style.animationDelay = `${index * 35}ms`;
+    bubble.style.animationDelay = `${index * 15}ms`;
+    bubble.setAttribute("draggable", "true");
+    bubble.setAttribute("data-field-name", fieldName);
     
     bubble.innerHTML = `${getIconHTML(fieldName, currentLinks[fieldName])} <span class="bubble-text" style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 140px;">${fieldName}</span>`;
     
@@ -302,21 +406,108 @@ const renderAllFields = () => {
       renderAllFields();
       trackEvent('link_selected', { name: fieldName });
     });
-    bubblesArea.appendChild(bubble);
+    return bubble;
+  };
+
+  const makeContainerSortable = (container, categoryName) => {
+    container.classList.add("bubbles-container");
+    container.setAttribute("data-category", categoryName);
+    
+    let draggedElement = null;
+
+    container.addEventListener("dragstart", (e) => {
+      if (!e.target.classList.contains("bubble")) return;
+      draggedElement = e.target;
+      e.target.classList.add("dragging");
+      e.dataTransfer.effectAllowed = "move";
+      e.dataTransfer.setData("text/plain", e.target.getAttribute("data-field-name"));
+      // Needed for Chrome/Windows dragging bug
+      setTimeout(() => e.target.style.opacity = "0.5", 0); 
+    });
+
+    container.addEventListener("dragover", (e) => {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = "move";
+      const target = e.target.closest(".bubble");
+      if (target && target !== draggedElement && target.parentNode === container) {
+        const rect = target.getBoundingClientRect();
+        const next = (e.clientX - rect.left) / (rect.right - rect.left) > 0.5;
+        container.insertBefore(draggedElement, next && target.nextSibling || target);
+      }
+    });
+
+    container.addEventListener("dragend", async (e) => {
+      e.target.classList.remove("dragging");
+      e.target.style.opacity = "1";
+      if (draggedElement) {
+        const newCategory = draggedElement.closest(".bubbles-container").getAttribute("data-category");
+        const fieldName = draggedElement.getAttribute("data-field-name");
+        
+        // Re-scrape the new order from DOM
+        const newFieldsOrder = [];
+        document.querySelectorAll(".bubble").forEach(b => {
+           let name = b.getAttribute("data-field-name");
+           if(!newFieldsOrder.includes(name)) newFieldsOrder.push(name);
+        });
+        
+        // Only elements visible are in newFieldsOrder. Merge with hidden (searched out) ones.
+        // It's safer to just reorder if there's no search query
+        if (!searchQuery && newFieldsOrder.length === currentFields.length) {
+          currentFields = newFieldsOrder;
+          await saveReorderedFields(currentUser.uid, currentFields);
+          
+          if (newCategory && newCategory !== "Pinned") {
+            if (!currentMetadata[fieldName]) currentMetadata[fieldName] = {};
+            if (currentMetadata[fieldName].category !== newCategory) {
+              currentMetadata[fieldName].category = newCategory;
+              await updateFieldMetadata(currentUser.uid, fieldName, { category: newCategory });
+            }
+          }
+        }
+      }
+    });
+  };
+
+  let globalIndex = 0;
+
+  if (pinnedFields.length > 0) {
+    const groupEl = document.createElement("div");
+    groupEl.classList.add("category-section");
+    groupEl.innerHTML = `<h3 class="category-title"><i class="fas fa-thumbtack"></i> Pinned</h3>`;
+    const container = document.createElement("div");
+    makeContainerSortable(container, "Pinned");
+    pinnedFields.forEach((fieldName) => {
+      container.appendChild(createBubble(fieldName, globalIndex++));
+    });
+    groupEl.appendChild(container);
+    bubblesArea.appendChild(groupEl);
+  }
+
+  Object.keys(categoryGroups).sort().forEach(cat => {
+    const groupEl = document.createElement("div");
+    groupEl.classList.add("category-section");
+    groupEl.innerHTML = `<h3 class="category-title">${cat}</h3>`;
+    const container = document.createElement("div");
+    makeContainerSortable(container, cat);
+    categoryGroups[cat].forEach((fieldName) => {
+      container.appendChild(createBubble(fieldName, globalIndex++));
+    });
+    groupEl.appendChild(container);
+    bubblesArea.appendChild(groupEl);
   });
 
   // Render Active Field Row or Empty State
   if (activeField) {
     renderActiveRow(activeField, currentLinks[activeField] || "");
   } else {
-    if (searchQuery) {
+    if (searchQuery && displayFields.length === 0) {
       activeFieldArea.innerHTML = `
         <div class="empty-state">
           <div class="empty-state-icon"><i class="fas fa-search"></i></div>
           <div class="empty-state-title">No matches found</div>
           <div class="empty-state-desc">No links match "${searchQuery}".<br>Try a different search.</div>
         </div>`;
-    } else {
+    } else if (currentFields.length === 0) {
       activeFieldArea.innerHTML = `
         <div class="empty-state">
           <div class="empty-state-icon"><i class="fas fa-link"></i></div>
@@ -326,6 +517,8 @@ const renderAllFields = () => {
             <i class="fas fa-plus"></i> Add First Link
           </button>
         </div>`;
+    } else {
+      activeFieldArea.innerHTML = "";
     }
   }
 };
@@ -424,6 +617,82 @@ const renderActiveRow = (fieldName, fieldValue) => {
     }
   });
 
+  const meta = currentMetadata[fieldName] || {};
+  const isPinned = meta.isPinned || false;
+
+  const pinBtn = document.createElement("button");
+  pinBtn.classList.add("btn-copy"); // utilizing existing subtle styling
+  pinBtn.innerHTML = isPinned ? '<i class="fas fa-thumbtack" style="opacity: 0.5;"></i> Unpin' : '<i class="fas fa-thumbtack"></i> Pin';
+  pinBtn.title = isPinned ? "Unpin link" : "Pin link";
+  pinBtn.addEventListener("click", async () => {
+    const newState = !isPinned;
+    
+    if (newState) {
+      const pinnedCount = Object.values(currentMetadata).filter(m => m.isPinned).length;
+      if (pinnedCount >= 5) {
+        showToast("Maximum of 5 pins allowed!");
+        return;
+      }
+    }
+
+    if (!currentMetadata[fieldName]) currentMetadata[fieldName] = {};
+    const oldState = currentMetadata[fieldName].isPinned;
+    currentMetadata[fieldName].isPinned = newState;
+    
+    try {
+      await updateFieldMetadata(currentUser.uid, fieldName, { isPinned: newState });
+      renderAllFields();
+      showToast(newState ? "Pinned" : "Unpinned");
+    } catch (e) {
+      console.error(e);
+      showToast("Failed to pin. Try again.");
+      currentMetadata[fieldName].isPinned = oldState; // revert locally
+    }
+  });
+
+  const categorySelect = document.createElement("select");
+  categorySelect.classList.add("category-select");
+  const categories = [...new Set(Object.values(currentMetadata).map(m => m.category).filter(Boolean))];
+  if (!categories.includes("Uncategorized")) categories.push("Uncategorized");
+  
+  categorySelect.innerHTML = categories.map(cat => `<option value="${cat}">${cat}</option>`).join("");
+  categorySelect.innerHTML += `<option value="__new__">+ New Category...</option>`;
+  categorySelect.value = meta.category || "Uncategorized";
+  
+  categorySelect.addEventListener("change", async (e) => {
+    let newCat = e.target.value;
+    if (newCat === "__new__") {
+       newCat = await showSimplePromptModal("New Category", "Enter new category name:");
+       if (!newCat || !newCat.trim()) {
+          categorySelect.value = meta.category || "Uncategorized";
+          return;
+       }
+       newCat = newCat.trim();
+    }
+    const oldCat = currentMetadata[fieldName]?.category || "Uncategorized";
+    if (!currentMetadata[fieldName]) currentMetadata[fieldName] = {};
+    currentMetadata[fieldName].category = newCat;
+    
+    try {
+      await updateFieldMetadata(currentUser.uid, fieldName, { category: newCat });
+      renderAllFields();
+      showToast(`Moved to ${newCat}`);
+    } catch (err) {
+      console.error(err);
+      showToast("Failed to move category.");
+      currentMetadata[fieldName].category = oldCat;
+      categorySelect.value = oldCat;
+    }
+  });
+
+  const optionsGroup = document.createElement("div");
+  optionsGroup.classList.add("field-options-group");
+  optionsGroup.style.display = "flex";
+  optionsGroup.style.alignItems = "center";
+  optionsGroup.style.gap = "8px";
+  optionsGroup.appendChild(categorySelect);
+  optionsGroup.appendChild(pinBtn);
+
   const actionGroup = document.createElement("div");
   actionGroup.classList.add("field-actions");
   
@@ -439,6 +708,7 @@ const renderActiveRow = (fieldName, fieldValue) => {
   actionGroup.appendChild(rightActions);
 
   row.appendChild(inputGroup);
+  row.appendChild(optionsGroup);
   row.appendChild(actionGroup);
   activeFieldArea.appendChild(row);
 };
