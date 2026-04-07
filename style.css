@@ -656,7 +656,7 @@ button:disabled {
   justify-content: space-between;
   align-items: center;
   padding: 8px 12px;
-  margin-bottom: 8px;
+  margin-bottom: 4px; /* Reduced to avoid gap when collapsed */
   cursor: pointer;
   border-radius: var(--radius-sm);
   color: var(--text-secondary);
@@ -681,6 +681,7 @@ button:disabled {
   display: grid;
   grid-template-rows: 1fr;
   transition: grid-template-rows 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden; /* Ensure clipping when height is 0 */
 }
 
 .bubbles-grid-wrapper.collapsed {
@@ -692,7 +693,7 @@ button:disabled {
   display: flex;
   flex-wrap: wrap;
   gap: 12px;
-  padding-bottom: 8px;
+  padding-bottom: 12px; /* Added padding for breathing room when open */
 }
 
 @keyframes fadeInUp {
