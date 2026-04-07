@@ -6,6 +6,18 @@
 
 async function getClientId() {
   return new Promise((resolve) => {
+    const isExtension = typeof chrome !== "undefined" && chrome.storage && chrome.storage.local;
+
+    if (!isExtension) {
+      let id = localStorage.getItem('ga_client_id');
+      if (!id) {
+        id = `${Math.random().toString(36).slice(2, 10)}.${Date.now()}`;
+        localStorage.setItem('ga_client_id', id);
+      }
+      resolve(id);
+      return;
+    }
+
     chrome.storage.local.get(['ga_client_id'], (result) => {
       if (result.ga_client_id) {
         resolve(result.ga_client_id);
@@ -26,9 +38,8 @@ window.trackEvent = async (name, params = {}) => {
   const MEASUREMENT_ID = firebaseConfig?.measurementId;
   const API_SECRET = firebaseConfig?.gaApiSecret;
 
-  // If no API secret is provided, just log to console to avoid errors
+  // Silent mode if no API secret is provided (Dev environment or no GA set up)
   if (!API_SECRET || API_SECRET === 'YOUR_API_SECRET_HERE') {
-    console.warn(`[Analytics] Tracked: ${name}`, params, '(API Secret missing, not sent to GA)');
     return;
   }
 

@@ -463,6 +463,7 @@ const renderAllFields = () => {
 
   const makeContainerSortable = (container, categoryName) => {
     container.classList.add("bubbles-container");
+    if (searchQuery) container.classList.add("search-active");
     container.setAttribute("data-category", categoryName);
     
     let draggedElement = null;
@@ -547,11 +548,16 @@ const renderAllFields = () => {
   Object.keys(categoryGroups).sort().forEach(cat => {
     const groupEl = document.createElement("div");
     groupEl.classList.add("category-section");
-    const isOpen = isCategoryOpen(cat);
-    groupEl.innerHTML = `<button class="category-header">
-      <span>${cat}</span>
-      <i class="fas fa-chevron-${isOpen ? 'down' : 'right'}"></i>
-    </button>`;
+    const isOpen = searchQuery ? true : isCategoryOpen(cat);
+    
+    // Header for categories
+    const headerHtml = `
+      <button class="category-header ${searchQuery ? 'search-mode' : ''}">
+        <span>${cat}</span>
+        ${searchQuery ? '' : `<i class="fas fa-chevron-${isOpen ? 'down' : 'right'}"></i>`}
+      </button>
+    `;
+    groupEl.innerHTML = headerHtml;
     
     const gridWrapper = document.createElement("div");
     gridWrapper.classList.add("bubbles-grid-wrapper");
@@ -568,8 +574,12 @@ const renderAllFields = () => {
     
     const headerBtn = groupEl.querySelector(".category-header");
     headerBtn.addEventListener("click", () => {
+      if (searchQuery) return; // No toggling during active search
+      
       const newState = toggleCategoryState(cat);
-      headerBtn.querySelector("i.fa-chevron-down, i.fa-chevron-right").className = `fas fa-chevron-${newState ? 'down' : 'right'}`;
+      const icon = headerBtn.querySelector("i.fa-chevron-down, i.fa-chevron-right");
+      if (icon) icon.className = `fas fa-chevron-${newState ? 'down' : 'right'}`;
+      
       if (newState) {
         gridWrapper.classList.remove("collapsed");
       } else {
@@ -647,6 +657,14 @@ const renderActiveRow = (fieldName, fieldValue) => {
   saveBtn.classList.add("btn-save");
   saveBtn.innerHTML = '<i class="fas fa-check"></i> Save';
   saveBtn.title = "Save";
+  saveBtn.disabled = true; // Disabled until a change is detected
+
+  // Auto-enable/disable based on changes
+  input.addEventListener("input", () => {
+    const currentVal = input.value.trim();
+    saveBtn.disabled = (currentVal === fieldValue);
+  });
+
   saveBtn.addEventListener("click", async () => {
     const url = input.value.trim();
     
@@ -656,16 +674,22 @@ const renderActiveRow = (fieldName, fieldValue) => {
       return;
     }
 
+    const originalBtnHTML = saveBtn.innerHTML;
     saveBtn.disabled = true;
+    saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
     try {
       await saveLinkToFirestore(currentUser.uid, fieldName, url);
       currentLinks[fieldName] = url;
       showToast(fieldName + " saved ✓");
       trackEvent('link_saved', { name: fieldName });
+      
+      // Update the "original" value so the button disables again
+      fieldValue = url; 
     } catch (error) {
       showToast("Failed to save. Try again.");
-    } finally {
       saveBtn.disabled = false;
+    } finally {
+      saveBtn.innerHTML = originalBtnHTML;
     }
   });
 
@@ -983,3 +1007,15 @@ document.addEventListener("keydown", (e) => {
     }
   }
 });
+
+// Horizontal Scrolling via Wheel for Ribbon
+document.addEventListener("wheel", (e) => {
+  const container = e.target.closest(".bubbles-container");
+  if (container) {
+    // Only intercept if there's actual vertical scroll effort
+    if (e.deltaY !== 0) {
+      container.scrollLeft += e.deltaY;
+      e.preventDefault();
+    }
+  }
+}, { passive: false });
