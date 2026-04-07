@@ -10,6 +10,36 @@ const cleanTabTitle = (title) => {
     .trim();
 };
 
+const inferSiteFromUrl = (url) => {
+  if (!url) return "";
+  try {
+    const urlObj = new URL(url.startsWith('http') ? url : 'https://' + url);
+    let host = urlObj.hostname.replace('www.', '');
+    
+    // TLDs to strip for simple clean names
+    const tlds = ['.com', '.org', '.net', '.edu', '.gov', '.io', '.me', '.app', '.dev', '.pk', '.in'];
+    tlds.forEach(tld => {
+      if (host.endsWith(tld)) host = host.slice(0, -tld.length);
+    });
+
+    const path = urlObj.pathname.split('/').filter(Boolean);
+    const originalHost = urlObj.hostname.replace('www.', '');
+    
+    // Profiles/Products logic for major sites
+    const complexSites = ['github.com', 'twitter.com', 'x.com', 'instagram.com', 'linkedin.com', 'youtube.com'];
+    if (complexSites.includes(originalHost) && path.length > 0) {
+      const siteName = host.charAt(0).toUpperCase() + host.slice(1);
+      // Clean up common path segments like 'u/', 'p/', etc if needed, 
+      // but usually the first segment is the handle.
+      if (path[0] !== 'watch' && path[0] !== 'channel') {
+        return `${siteName} - ${path[0]}`;
+      }
+    }
+
+    return host.charAt(0).toUpperCase() + host.slice(1);
+  } catch (e) { return ""; }
+};
+
 // DOM References
 const bubblesArea = document.getElementById("bubblesArea");
 const activeFieldArea = document.getElementById("activeFieldArea");
@@ -119,7 +149,26 @@ const showPromptModal = () => {
       modalOkBtn.removeEventListener("click", handleOk);
       modalCancelBtn.removeEventListener("click", handleCancel);
       modalInput.removeEventListener("keydown", handleKey);
-      if (modalUrlInput) modalUrlInput.removeEventListener("keydown", handleKey);
+      if (modalUrlInput) {
+        modalUrlInput.removeEventListener("keydown", handleKey);
+        modalUrlInput.removeEventListener("blur", handleUrlBlur);
+      }
+    };
+
+    const handleUrlBlur = () => {
+      const currentName = modalInput.value.trim();
+      const currentUrl = modalUrlInput.value.trim();
+      // Only infer if user hasn't manually typed a name yet
+      if (!currentName && currentUrl) {
+         const inferred = inferSiteFromUrl(currentUrl);
+         if (inferred) {
+            modalInput.value = inferred;
+            // Visual feedback that the field was auto-filled
+            modalInput.style.transition = "background-color 0.5s ease";
+            modalInput.style.backgroundColor = "rgba(148, 163, 184, 0.15)";
+            setTimeout(() => modalInput.style.backgroundColor = "", 1000);
+         }
+      }
     };
 
     const handleOk = () => {
@@ -150,7 +199,10 @@ const showPromptModal = () => {
     modalOkBtn.addEventListener("click", handleOk);
     modalCancelBtn.addEventListener("click", handleCancel);
     modalInput.addEventListener("keydown", handleKey);
-    if (modalUrlInput) modalUrlInput.addEventListener("keydown", handleKey);
+    if (modalUrlInput) {
+      modalUrlInput.addEventListener("keydown", handleKey);
+      modalUrlInput.addEventListener("blur", handleUrlBlur);
+    }
   });
 };
 
@@ -579,6 +631,17 @@ const renderActiveRow = (fieldName, fieldValue) => {
   inputGroup.appendChild(iconWrapper);
   inputGroup.appendChild(input);
 
+  // Close Button for the Sticky Sheet
+  const closeBtn = document.createElement("button");
+  closeBtn.classList.add("btn-close-editor");
+  closeBtn.innerHTML = '<i class="fas fa-times"></i>';
+  closeBtn.title = "Close Editor";
+  closeBtn.addEventListener("click", () => {
+    activeField = null;
+    renderAllFields();
+  });
+  inputGroup.appendChild(closeBtn);
+
   // Save button
   const saveBtn = document.createElement("button");
   saveBtn.classList.add("btn-save");
@@ -890,3 +953,33 @@ const showToast = (message) => {
     toastEl.classList.remove("show");
   }, 2500);
 };
+
+// Click Outside to Close Editor
+document.addEventListener("mousedown", (e) => {
+  if (!activeField) return;
+  
+  const isOuterClick = !e.target.closest(".active-field-area") && 
+                       !e.target.closest(".bubble") &&
+                       !e.target.closest(".modal-overlay") &&
+                       !e.target.closest(".btn-add-link") &&
+                       !e.target.closest(".btn-save-tab") &&
+                       !e.target.closest(".user-bar") &&
+                       !e.target.closest(".app-header") &&
+                       !e.target.closest(".category-header");
+
+  if (isOuterClick) {
+    activeField = null;
+    renderAllFields();
+  }
+});
+
+// Escape Key to Close Editor
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape") {
+    const isModalOpen = document.querySelector(".modal-overlay.show");
+    if (!isModalOpen && activeField) {
+      activeField = null;
+      renderAllFields();
+    }
+  }
+});

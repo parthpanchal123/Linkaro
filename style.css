@@ -637,8 +637,8 @@ button:disabled {
 .bubbles-area {
   display: flex;
   flex-direction: column;
-  gap: 24px;
-  padding: 12px 16px 24px;
+  gap: 16px; /* Slightly reduced gap */
+  padding: 12px 16px 120px; /* Large bottom padding for sticky editor affordance */
 }
 
 .category-section {
@@ -766,11 +766,58 @@ button:disabled {
 
 
 
-/* ===== ACTIVE FIELD AREA ===== */
+/* ===== ACTIVE FIELD SHEET (Sticky Bottom) ===== */
 .active-field-area {
-  padding: 0 16px 32px;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  padding: 16px;
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-top: 1px solid rgba(255, 255, 255, 0.5);
+  box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.08);
+  z-index: 100;
   display: flex;
   flex-direction: column;
+  transform: translateY(100%);
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.active-field-area:not(:empty) {
+  transform: translateY(0);
+}
+
+/* Ensure dark mode support for sticky sheet */
+:root[data-theme="dark"] .active-field-area {
+  background: rgba(15, 23, 42, 0.85);
+  border-top-color: rgba(255, 255, 255, 0.1);
+  box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.3);
+}
+
+.btn-close-editor {
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  font-size: 14px;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: var(--radius-full);
+  transition: all var(--transition-fast);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: auto;
+}
+
+.btn-close-editor:hover {
+  background: rgba(0, 0, 0, 0.05);
+  color: var(--text-primary);
+}
+
+:root[data-theme="dark"] .btn-close-editor:hover {
+  background: rgba(255, 255, 255, 0.1);
 }
 
 .category-select {

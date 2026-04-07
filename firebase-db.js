@@ -13,12 +13,14 @@ const initUserData = async (userId) => {
   const doc = await userRef.get();
 
   if (!doc.exists) {
-    const defaultData = { fields: [], links: {} };
+    const defaultData = { fields: [], links: {}, metadata: {} };
     await userRef.set(defaultData);
     return defaultData;
   }
 
-  return doc.data();
+  const data = doc.data();
+  if (!data.metadata) data.metadata = {};
+  return data;
 };
 
 /**
@@ -56,6 +58,32 @@ const deleteFieldFromFirestore = async (userId, fieldName) => {
   const userRef = db.collection("users").doc(userId);
   await userRef.update(
     "fields", firebase.firestore.FieldValue.arrayRemove(fieldName),
-    new firebase.firestore.FieldPath("links", fieldName), firebase.firestore.FieldValue.delete()
+    new firebase.firestore.FieldPath("links", fieldName), firebase.firestore.FieldValue.delete(),
+    new firebase.firestore.FieldPath("metadata", fieldName), firebase.firestore.FieldValue.delete()
   );
+};
+
+/**
+ * Update metadata (like category and isPinned) for a field
+ * @param {string} userId
+ * @param {string} fieldName
+ * @param {Object} metadataUpdates
+ */
+const updateFieldMetadata = async (userId, fieldName, metadataUpdates) => {
+  const userRef = db.collection("users").doc(userId);
+  await userRef.set({
+    metadata: {
+      [fieldName]: metadataUpdates
+    }
+  }, { merge: true });
+};
+
+/**
+ * Save the entire reordered fields array back to Firestore
+ * @param {string} userId
+ * @param {string[]} newFieldsArray
+ */
+const saveReorderedFields = async (userId, newFieldsArray) => {
+  const userRef = db.collection("users").doc(userId);
+  await userRef.update({ fields: newFieldsArray });
 };
