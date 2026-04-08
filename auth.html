@@ -4,7 +4,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#f3f4f6">
   <title>Linkaro — Sign In</title>
+  <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.13.0/css/all.min.css" rel="stylesheet">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -13,6 +15,8 @@
 </head>
 
 <body class="auth-body">
+  <a class="skip-link" href="#authMain">Skip to Main Content</a>
+  <main id="authMain">
   <div class="auth-container">
     <div class="auth-header">
       <img src="link_icon.png" alt="Linkaro Logo" width="48" height="48" class="auth-icon" style="width:48px;height:48px;object-fit:contain;border-radius:10px;margin-bottom:12px;">
@@ -22,20 +26,22 @@
 
     <form id="authForm" class="auth-form">
       <div class="input-group">
-        <i class="fas fa-envelope input-icon"></i>
-        <input type="email" id="emailInput" placeholder="Email address" required>
+        <label for="emailInput" class="sr-only">Email Address</label>
+        <i class="fas fa-envelope input-icon" aria-hidden="true"></i>
+        <input type="email" id="emailInput" name="email" autocomplete="email" spellcheck="false" placeholder="Email address…" required>
       </div>
 
       <div class="input-group">
-        <i class="fas fa-lock input-icon"></i>
-        <input type="password" id="passwordInput" placeholder="Password" required minlength="6">
+        <label for="passwordInput" class="sr-only">Password</label>
+        <i class="fas fa-lock input-icon" aria-hidden="true"></i>
+        <input type="password" id="passwordInput" name="password" autocomplete="current-password" placeholder="Password…" required minlength="6">
       </div>
 
-      <div id="errorMsg" class="error-msg"></div>
+      <div id="errorMsg" class="error-msg" aria-live="polite"></div>
 
       <button type="submit" id="submitBtn" class="auth-btn">
         <span id="btnText">Log In</span>
-        <i id="btnSpinner" class="fas fa-spinner fa-spin" style="display: none;"></i>
+        <i id="btnSpinner" class="fas fa-spinner fa-spin" style="display: none;" aria-hidden="true"></i>
       </button>
 
       <div class="divider">
@@ -44,18 +50,19 @@
 
       <button type="button" id="googleBtn" class="google-btn">
         <span id="googleBtnContent">
-          <i class="fab fa-google"></i>
+          <i class="fab fa-google" aria-hidden="true"></i>
           Continue with Google
         </span>
-        <i id="googleBtnSpinner" class="fas fa-spinner fa-spin" style="display: none;"></i>
+        <i id="googleBtnSpinner" class="fas fa-spinner fa-spin" style="display: none;" aria-hidden="true"></i>
       </button>
     </form>
 
     <p class="toggle-text">
       <span id="toggleMsg">Don't have an account? </span>
-      <a href="#" id="toggleBtn" class="toggle-link">Sign Up</a>
+      <button type="button" id="toggleBtn" class="toggle-link">Sign Up</button>
     </p>
   </div>
+  </main>
 
   <!-- Firebase + Auth Bundle (MV3-safe, no remote code) -->
   <script src="./dist/auth-bundle.js"></script>

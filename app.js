@@ -68,7 +68,7 @@ const confirmCancelBtn = document.getElementById("confirmCancelBtn");
 const confirmOkBtn = document.getElementById("confirmOkBtn");
 if (themeToggleBtn) {
   const currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
-  themeToggleBtn.innerHTML = currentTheme === 'dark' ? '<i class="fas fa-sun"></i>' : '<i class="fas fa-moon"></i>';
+  themeToggleBtn.innerHTML = currentTheme === 'dark' ? '<i class="fas fa-sun" aria-hidden="true"></i>' : '<i class="fas fa-moon" aria-hidden="true"></i>';
 
   themeToggleBtn.addEventListener("click", () => {
     let theme = document.documentElement.getAttribute('data-theme') || 'light';
@@ -77,7 +77,7 @@ if (themeToggleBtn) {
     document.documentElement.setAttribute('data-theme', newTheme);
     localStorage.setItem('theme', newTheme);
     
-    themeToggleBtn.innerHTML = newTheme === 'dark' ? '<i class="fas fa-sun"></i>' : '<i class="fas fa-moon"></i>';
+    themeToggleBtn.innerHTML = newTheme === 'dark' ? '<i class="fas fa-sun" aria-hidden="true"></i>' : '<i class="fas fa-moon" aria-hidden="true"></i>';
     trackEvent('theme_toggled', { theme: newTheme });
   });
 }
@@ -248,7 +248,7 @@ const showConfirmModal = (title, description) => {
   });
 };
 
-const showSimplePromptModal = (title, description, placeholder = "Type here...") => {
+const showSimplePromptModal = (title, description, placeholder = "Type here…") => {
   return new Promise((resolve) => {
     const pModal = document.getElementById("simplePromptModal");
     const pTitle = document.getElementById("promptModalTitle");
@@ -709,7 +709,7 @@ const renderAllFields = () => {
       activeFieldArea.innerHTML = `
         <div class="empty-state">
           <div class="empty-state-icon"><i class="fas fa-link"></i></div>
-          <div class="empty-state-title">Your digital hub is a bit lonely...</div>
+          <div class="empty-state-title">Your digital hub is a bit lonely…</div>
           <div class="empty-state-desc">Add your first link to start your empire.</div>
           <button class="btn-add-link" style="margin-top: 20px;">
             <i class="fas fa-plus"></i> Add First Link
@@ -732,6 +732,8 @@ const renderActiveRow = (fieldName, fieldValue) => {
   const input = document.createElement("input");
   input.setAttribute("type", "url");
   input.setAttribute("id", "field-" + fieldName);
+  input.setAttribute("name", "linkUrl");
+  input.setAttribute("aria-label", `${fieldName} URL`);
   input.setAttribute("placeholder", "https://…");
   input.setAttribute("autocomplete", "off");
   input.value = fieldValue;
@@ -863,6 +865,8 @@ const renderActiveRow = (fieldName, fieldValue) => {
   // ── Category select ──────────────────────────────────────
   const categorySelect = document.createElement("select");
   categorySelect.classList.add("category-select");
+  categorySelect.setAttribute("name", "category");
+  categorySelect.setAttribute("aria-label", `Category for ${fieldName}`);
   const categories = [...new Set(Object.values(currentMetadata).map(m => m.category).filter(Boolean))];
   if (!categories.includes("Uncategorized")) categories.push("Uncategorized");
   categorySelect.innerHTML = categories.map(cat => `<option value="${cat}">${cat}</option>`).join("");
@@ -975,7 +979,7 @@ const handleSaveTabBtnClick = async () => {
 
   const saveTabBtn = document.getElementById("saveTabBtn");
   const originalHTML = saveTabBtn.innerHTML;
-  saveTabBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+  saveTabBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving…';
   saveTabBtn.style.opacity = "0.7";
   saveTabBtn.disabled = true;
 

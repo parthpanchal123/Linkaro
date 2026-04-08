@@ -14,23 +14,25 @@
 </head>
 
 <body>
+  <a class="skip-link" href="#mainContent">Skip to Main Content</a>
   <!-- User Bar -->
   <div class="user-bar">
     <div class="user-email">
-      <i class="fas fa-user-circle"></i>
-      <span id="userEmail">Loading...</span>
+      <i class="fas fa-user-circle" aria-hidden="true"></i>
+      <span id="userEmail">Loading…</span>
     </div>
     <div style="display:flex; gap:8px;">
-      <button id="themeToggleBtn" class="theme-toggle" title="Toggle Theme">
-        <i class="fas fa-moon"></i>
+      <button id="themeToggleBtn" class="theme-toggle" title="Toggle Theme" aria-label="Toggle Theme">
+        <i class="fas fa-moon" aria-hidden="true"></i>
       </button>
-      <button id="signOutBtn" class="sign-out-btn" title="Sign Out">
-        <i class="fas fa-sign-out-alt"></i>
+      <button id="signOutBtn" class="sign-out-btn" title="Sign Out" aria-label="Sign Out">
+        <i class="fas fa-sign-out-alt" aria-hidden="true"></i>
       </button>
     </div>
   </div>
 
-  <main>
+  <main id="mainContent">
+    <h1 class="sr-only">Linkaro</h1>
     <!-- Header -->
     <div class="app-header">
       <div>
@@ -40,10 +42,10 @@
       </div>
       <div>
         <button id="saveTabBtn" class="btn-save-tab" title="Save current tab">
-          <i class="fas fa-window-maximize"></i> Save Tab
+          <i class="fas fa-window-maximize" aria-hidden="true"></i> Save Tab
         </button>
         <button id="addHeaderBtn" class="btn-add-link" title="Add New Link">
-          <i class="fas fa-plus"></i> Add Link
+          <i class="fas fa-plus" aria-hidden="true"></i> Add Link
         </button>
       </div>
     </div>
@@ -51,24 +53,24 @@
     <!-- Search Area -->
     <div class="search-area">
       <div class="search-box">
-        <i class="fas fa-search"></i>
-        <input type="text" id="searchInput" placeholder="Search name, URL, or category...">
-        <button id="searchClearBtn" class="search-clear" title="Clear search">
-          <i class="fas fa-times"></i>
+        <i class="fas fa-search" aria-hidden="true"></i>
+        <input type="text" id="searchInput" name="search" aria-label="Search Links" autocomplete="off" placeholder="Search name, URL, or category…">
+        <button id="searchClearBtn" class="search-clear" title="Clear search" aria-label="Clear Search">
+          <i class="fas fa-times" aria-hidden="true"></i>
         </button>
       </div>
     </div>
 
     <!-- Info -->
     <div id="instructionText" class="info-bar">
-      <i class="fas fa-info-circle"></i>
+      <i class="fas fa-info-circle" aria-hidden="true"></i>
       Click a tag to view or update your link
     </div>
 
     <!-- Loading Spinner -->
     <div id="loading" class="loading-spinner" style="display: none;">
-      <i class="fas fa-spinner fa-spin"></i>
-      <p>Loading your links...</p>
+      <i class="fas fa-spinner fa-spin" aria-hidden="true"></i>
+      <p>Loading your links…</p>
     </div>
 
     <!-- Bubbles Area -->
@@ -98,11 +100,11 @@
       <div class="modal-fields">
         <div class="modal-field-group">
           <label for="modalInput" class="modal-label">Name</label>
-          <input type="text" id="modalInput" placeholder="e.g. Github, TikTok" />
+          <input type="text" id="modalInput" name="linkName" autocomplete="off" placeholder="e.g. Github, TikTok" />
         </div>
         <div class="modal-field-group">
           <label for="modalUrlInput" class="modal-label">URL <span style="color: var(--text-secondary); font-weight: 400;">(optional)</span></label>
-          <input type="url" id="modalUrlInput" placeholder="https://..." />
+          <input type="url" id="modalUrlInput" name="linkUrl" autocomplete="off" placeholder="https://…" />
         </div>
       </div>
       <div class="modal-actions">
@@ -119,7 +121,7 @@
       <p class="modal-desc" id="promptModalDesc">Enter value:</p>
       <div class="modal-fields">
         <div class="modal-field-group">
-          <input type="text" id="promptModalInput" placeholder="Type here..." />
+          <input type="text" id="promptModalInput" name="promptValue" aria-label="Prompt Value" autocomplete="off" placeholder="Type here…" />
         </div>
       </div>
       <div class="modal-actions">
@@ -130,7 +132,7 @@
   </div>
 
   <!-- Toast Notification -->
-  <div id="toast" class="toast"></div>
+  <div id="toast" class="toast" aria-live="polite" role="status"></div>
 
   <!-- Firebase + DB Bundle (MV3-safe, no remote code) -->
   <script src="./dist/firebase-bundle.js"></script>
