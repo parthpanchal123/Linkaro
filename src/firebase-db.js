@@ -9,13 +9,14 @@ export const initUserData = async (userId) => {
   const snap = await getDoc(userRef);
 
   if (!snap.exists()) {
-    const defaultData = { fields: [], links: {}, metadata: {} };
+    const defaultData = { fields: [], links: {}, metadata: {}, hasCustomOrder: false };
     await setDoc(userRef, defaultData);
     return defaultData;
   }
 
   const data = snap.data();
   if (!data.metadata) data.metadata = {};
+  if (typeof data.hasCustomOrder !== "boolean") data.hasCustomOrder = false;
   return data;
 };
 
@@ -31,11 +32,12 @@ export const addFieldToFirestore = async (userId, fieldName) => {
 
 export const deleteFieldFromFirestore = async (userId, fieldName) => {
   const userRef = doc(db, "users", userId);
-  await updateDoc(userRef, {
-    fields: arrayRemove(fieldName),
-    [`links.${fieldName}`]: deleteField(),
-    [`metadata.${fieldName}`]: deleteField(),
-  });
+  await updateDoc(
+    userRef,
+    "fields", arrayRemove(fieldName),
+    new FieldPath("links", fieldName), deleteField(),
+    new FieldPath("metadata", fieldName), deleteField()
+  );
 };
 
 export const updateFieldMetadata = async (userId, fieldName, metadataUpdates) => {
@@ -45,5 +47,5 @@ export const updateFieldMetadata = async (userId, fieldName, metadataUpdates) =>
 
 export const saveReorderedFields = async (userId, newFieldsArray) => {
   const userRef = doc(db, "users", userId);
-  await updateDoc(userRef, { fields: newFieldsArray });
+  await updateDoc(userRef, { fields: newFieldsArray, hasCustomOrder: true });
 };

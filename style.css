@@ -956,8 +956,8 @@ button.loading #googleBtnContent {
 /* Ensure dark mode support for sticky sheet */
 :root[data-theme="dark"] .active-field-area {
   background: rgba(15, 23, 42, 0.85);
-  border-top-color: rgba(255, 255, 255, 0.1);
-  box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.3);
+  border-top-color: rgba(255, 255, 255, 0.04);
+  box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.03);
 }
 
 .btn-close-editor {
@@ -1200,6 +1200,13 @@ button.loading #googleBtnContent {
   border-color: rgba(255, 255, 255, 0.1) !important;
 }
 
+:root[data-theme="dark"] .search-box input,
+:root[data-theme="dark"] .search-box input:focus {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
 :root[data-theme="dark"] .bubble.active {
   background: var(--text-primary) !important;
   color: var(--text-inverse) !important;
@@ -1211,13 +1218,13 @@ button.loading #googleBtnContent {
 }
 
 :root[data-theme="dark"] .field-row {
-  background: rgba(30, 41, 59, 0.5) !important;
-  border-color: rgba(255, 255, 255, 0.1) !important;
+  background: transparent !important;
+  border: none !important;
 }
 
 :root[data-theme="dark"] .field-row:hover {
-  background: rgba(30, 41, 59, 0.7) !important;
-  border-color: rgba(255, 255, 255, 0.15) !important;
+  background: transparent !important;
+  border: none !important;
 }
 
 :root[data-theme="dark"] .bubble:hover {
@@ -1435,6 +1442,15 @@ button:disabled {
   animation: shimmer 1.5s infinite linear;
   display: inline-block;
   vertical-align: middle;
+  flex-shrink: 0;
+}
+
+.favicon-img {
+  width: 16px;
+  height: 16px;
+  border-radius: 2px;
+  vertical-align: middle;
+  display: inline-block;
   flex-shrink: 0;
 }
 

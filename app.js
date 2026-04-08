@@ -40,6 +40,11 @@ const inferSiteFromUrl = (url) => {
   } catch (e) { return ""; }
 };
 
+const truncateText = (text, maxLength = 32) => {
+  if (!text) return "";
+  return text.length > maxLength ? `${text.slice(0, maxLength - 1)}…` : text;
+};
+
 // DOM References
 const bubblesArea = document.getElementById("bubblesArea");
 const activeFieldArea = document.getElementById("activeFieldArea");
@@ -81,6 +86,7 @@ let currentUser = null;
 let currentFields = [];
 let currentLinks = {};
 let currentMetadata = {};
+let hasCustomOrder = false;
 let activeField = null;
 let searchQuery = "";
 
@@ -334,12 +340,13 @@ const getIconHTML = (fieldName, url) => {
     return `<i class="${knownFA[lower]}"></i>`;
   }
 
-  // Ensure we have a valid domain to query Google Favicon
+  // Ensure we have a valid domain to query favicon providers
   let domain = lower.replace(/[^a-z0-9]/g, "") + ".com";
-  if (url && url.startsWith("http")) {
+  if (url) {
     try {
-      domain = new URL(url).hostname;
-    } catch(e) {}
+      const normalized = url.startsWith("http") ? url : `https://${url}`;
+      domain = new URL(normalized).hostname.replace(/^www\./, "");
+    } catch (e) {}
   }
 
   // Show shimmer placeholder, then swap to favicon once loaded
@@ -347,11 +354,26 @@ const getIconHTML = (fieldName, url) => {
   setTimeout(() => {
     const el = document.getElementById(shimId);
     if (!el) return;
+
+    const faviconSources = [
+      `https://icons.duckduckgo.com/ip3/${encodeURIComponent(domain)}.ico`
+    ];
+
     const img = new Image();
-    img.src = `https://www.google.com/s2/favicons?domain=${domain}&sz=32`;
-    img.style.cssText = "width:16px;height:16px;border-radius:2px;vertical-align:middle;display:inline-block;";
+    img.className = "favicon-img";
     img.onload = () => { if (el) el.replaceWith(img); };
-    img.onerror = () => { if (el) el.outerHTML = '<i class="fas fa-link"></i>'; };
+
+    let sourceIndex = 0;
+    const loadNextSource = () => {
+      if (sourceIndex >= faviconSources.length) {
+        if (el) el.outerHTML = '<i class="fas fa-link"></i>';
+        return;
+      }
+      img.src = faviconSources[sourceIndex++];
+    };
+
+    img.onerror = loadNextSource;
+    loadNextSource();
   }, 10);
   return `<span id="${shimId}" class="favicon-shimmer"></span>`;
 };
@@ -374,6 +396,7 @@ window.onAuthStateChanged(window.auth, async (user) => {
       currentFields = data.fields || [];
       currentLinks = data.links || {};
       currentMetadata = data.metadata || {};
+      hasCustomOrder = !!data.hasCustomOrder;
 
     renderAllFields();
   } catch (error) {
@@ -401,7 +424,8 @@ const renderAllFields = () => {
     }
   }
   
-  let displayFields = currentFields;
+  const orderedFields = hasCustomOrder ? currentFields : [...currentFields].reverse();
+  let displayFields = orderedFields;
   if (searchQuery) {
     displayFields = currentFields.filter((fieldName) => {
       const matchName = fieldName.toLowerCase().includes(searchQuery);
@@ -579,6 +603,7 @@ const renderAllFields = () => {
         if (!searchQuery && fullOrder.length === currentFields.length) {
           currentFields = fullOrder;
           await saveReorderedFields(currentUser.uid, currentFields);
+          hasCustomOrder = true;
 
           const fieldName = dragging.getAttribute("data-field-name");
           const newCategory = container.getAttribute("data-category");
@@ -725,7 +750,7 @@ const renderActiveRow = (fieldName, fieldValue) => {
   const fieldLabel = document.createElement("div");
   fieldLabel.classList.add("field-label");
   fieldLabel.title = fieldName;   // full name on hover tooltip
-  fieldLabel.innerHTML = `<i class="fas fa-link"></i><span>${fieldName}</span>`;
+  fieldLabel.innerHTML = `${getIconHTML(fieldName, fieldValue)}<span>${fieldName}</span>`;
 
   const inputGroup = document.createElement("div");
   inputGroup.classList.add("field-input-group");
@@ -758,6 +783,7 @@ const renderActiveRow = (fieldName, fieldValue) => {
       await saveLinkToFirestore(currentUser.uid, fieldName, url);
       currentLinks[fieldName] = url;
       fieldValue = url;
+      fieldLabel.innerHTML = `${getIconHTML(fieldName, url)}<span>${fieldName}</span>`;
       showToast(fieldName + " saved ✓");
       trackEvent('link_saved', { name: fieldName });
     } catch {
@@ -799,7 +825,7 @@ const renderActiveRow = (fieldName, fieldValue) => {
       activeField = null;
       renderAllFields();
       trackEvent('link_deleted', { name: fieldName });
-      showToast(fieldName + " deleted");
+      showToast(`${truncateText(fieldName)} deleted`);
     } catch {
       showToast("Failed to delete. Try again.");
       deleteBtn.disabled = false;
@@ -971,7 +997,7 @@ const handleSaveTabBtnClick = async () => {
 
     if (currentFields.includes(fieldName)) {
       showToast(`"${fieldName}" is already saved!`);
-      activeField = fieldName;
+      activeField = null;
       renderAllFields();
     } else {
       await addFieldToFirestore(currentUser.uid, fieldName);
@@ -979,7 +1005,7 @@ const handleSaveTabBtnClick = async () => {
       currentLinks[fieldName] = fieldUrl;
       await saveLinkToFirestore(currentUser.uid, fieldName, fieldUrl);
       
-      activeField = fieldName;
+      activeField = null;
       renderAllFields();
       showToast(`${fieldName} saved! ✓`);
       trackEvent('link_saved_auto', { name: fieldName });

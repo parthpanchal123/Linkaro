@@ -17,10 +17,12 @@
     "https://securetoken.googleapis.com/*",
     "https://firestore.googleapis.com/*",
     "https://www.googleapis.com/*",
-    "https://www.google.com/*"
+    "https://www.google.com/*",
+    "https://*.gstatic.com/*",
+    "https://icons.duckduckgo.com/*"
   ],
   "content_security_policy": {
-    "extension_pages": "script-src 'self'; object-src 'self'; style-src 'self' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com; connect-src https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://firestore.googleapis.com https://www.googleapis.com https://www.google-analytics.com; img-src 'self' https://www.google.com data:;"
+    "extension_pages": "script-src 'self'; object-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com; connect-src https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://firestore.googleapis.com https://www.googleapis.com https://www.google-analytics.com; img-src 'self' https://www.google.com https://*.gstatic.com https://icons.duckduckgo.com data:;"
   },
   "web_accessible_resources": [
     {
