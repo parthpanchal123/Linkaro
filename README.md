@@ -2,7 +2,7 @@
 
 **Linkaro** is a premium, cloud-synced browser extension designed to store, manage, and share your social and professional links with elegance and efficiency. Built with **Manifest V3** and **Firebase**, it keeps your digital ecosystem synchronized across all your devices.
 
-![Linkaro Screenshot](https://i.ibb.co/sJ9GFqJF/Screenshot-2026-04-05-131211.png)
+![Linkaro Screenshot](https://i.ibb.co/5XDrpKbn/image.png)
 
 ---
 
