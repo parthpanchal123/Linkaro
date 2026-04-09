@@ -23,8 +23,6 @@ if (existsSync(configPath)) {
     __FIREBASE_APP_ID__: extract("appId"),
     __FIREBASE_MEASUREMENT_ID__: extract("measurementId"),
   };
-  const gaSecretMatch = raw.match(/gaApiSecret:\s*["']([^"']+)["']/);
-  if (gaSecretMatch) firebaseValues["__FIREBASE_GA_SECRET__"] = JSON.stringify(gaSecretMatch[1]);
 }
 
 // Which entry to build — controlled by BUILD_ENTRY env var

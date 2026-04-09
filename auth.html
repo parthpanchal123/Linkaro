@@ -6,11 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="theme-color" content="#f3f4f6">
   <title>Linkaro — Sign In</title>
-  <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.13.0/css/all.min.css" rel="stylesheet">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Hanken+Grotesk:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./vendor/fontawesome/css/all.min.css">
   <link rel="stylesheet" href="./style.css">
 </head>
 
@@ -19,7 +15,7 @@
   <main id="authMain">
   <div class="auth-container">
     <div class="auth-header">
-      <img src="link_icon.png" alt="Linkaro Logo" width="48" height="48" class="auth-icon" style="width:48px;height:48px;object-fit:contain;border-radius:10px;margin-bottom:12px;">
+      <img src="link_icon.png" alt="Linkaro Logo" width="48" height="48" class="auth-icon">
       <h1 class="auth-title">Linkaro</h1>
       <p class="auth-subtitle">Your links, everywhere.</p>
     </div>
@@ -41,7 +37,7 @@
 
       <button type="submit" id="submitBtn" class="auth-btn">
         <span id="btnText">Log In</span>
-        <i id="btnSpinner" class="fas fa-spinner fa-spin" style="display: none;" aria-hidden="true"></i>
+        <i id="btnSpinner" class="fas fa-spinner fa-spin" aria-hidden="true"></i>
       </button>
 
       <div class="divider">
@@ -53,7 +49,7 @@
           <i class="fab fa-google" aria-hidden="true"></i>
           Continue with Google
         </span>
-        <i id="googleBtnSpinner" class="fas fa-spinner fa-spin" style="display: none;" aria-hidden="true"></i>
+        <i id="googleBtnSpinner" class="fas fa-spinner fa-spin" aria-hidden="true"></i>
       </button>
     </form>
 

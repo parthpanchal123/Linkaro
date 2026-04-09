@@ -60,6 +60,14 @@ const modalOkBtn = document.getElementById("modalOkBtn");
 const searchArea = document.querySelector(".search-area");
 const instructionText = document.getElementById("instructionText");
 const linkCountBadge = document.querySelector(".link-count");
+const addFabBtn = document.getElementById("addFabBtn");
+const infoShortcutHintEl = document.getElementById("infoShortcutHint");
+
+const IS_MAC = /Mac|iPhone|iPad|iPod/i.test(navigator.platform || "");
+const ADD_SHORTCUT_KEY = IS_MAC ? "Option" : "Alt";
+const ADD_SHORTCUT_TEXT = `${ADD_SHORTCUT_KEY} + N`;
+
+const getAddShortcutHintHTML = () => `Tip: Press <kbd>${ADD_SHORTCUT_KEY}</kbd> + <kbd>N</kbd> to add quickly`;
 
 const confirmModal = document.getElementById("confirmModal");
 const confirmModalTitle = document.getElementById("confirmModalTitle");
@@ -82,6 +90,15 @@ if (themeToggleBtn) {
   });
 }
 
+if (infoShortcutHintEl) {
+  infoShortcutHintEl.innerHTML = `• <kbd>${ADD_SHORTCUT_KEY}</kbd> + <kbd>N</kbd> to add`;
+}
+
+if (addFabBtn) {
+  addFabBtn.title = `Add New Link (${ADD_SHORTCUT_TEXT})`;
+  addFabBtn.setAttribute("aria-label", `Add New Link (${ADD_SHORTCUT_TEXT})`);
+}
+
 let currentUser = null;
 let currentFields = [];
 let currentLinks = {};
@@ -89,6 +106,12 @@ let currentMetadata = {};
 let hasCustomOrder = false;
 let activeField = null;
 let searchQuery = "";
+
+const updateAddFabVisibility = (isLoading = false) => {
+  if (!addFabBtn) return;
+  const shouldShow = !isLoading && !activeField;
+  addFabBtn.classList.toggle("is-hidden", !shouldShow);
+};
 
 // Category Accordion State Handlers
 const getCategoryStates = () => {
@@ -309,6 +332,18 @@ const showSimplePromptModal = (title, description, placeholder = "Type here…")
 };
 
 // ===== Icon Map & Dynamic Fetcher =====
+const normalizeHttpUrl = (url) => {
+  if (!url) return null;
+  try {
+    const normalized = /^https?:\/\//i.test(url) ? url : `https://${url}`;
+    const parsed = new URL(normalized);
+    if (parsed.protocol !== "http:" && parsed.protocol !== "https:") return null;
+    return parsed.href;
+  } catch (e) {
+    return null;
+  }
+};
+
 const getIconHTML = (fieldName, url) => {
   const knownFA = {
     github: "fab fa-github",
@@ -334,48 +369,62 @@ const getIconHTML = (fieldName, url) => {
     pinterest: "fab fa-pinterest"
   };
 
-  const lower = fieldName.toLowerCase();
-  
-  if (knownFA[lower]) {
-    return `<i class="${knownFA[lower]}"></i>`;
-  }
+  const hostnameFA = {
+    "github.com": "fab fa-github",
+    "linkedin.com": "fab fa-linkedin",
+    "x.com": "fab fa-twitter",
+    "twitter.com": "fab fa-twitter",
+    "instagram.com": "fab fa-instagram",
+    "youtube.com": "fab fa-youtube",
+    "facebook.com": "fab fa-facebook",
+    "reddit.com": "fab fa-reddit",
+    "tiktok.com": "fab fa-tiktok",
+    "twitch.tv": "fab fa-twitch",
+    "discord.com": "fab fa-discord",
+    "medium.com": "fab fa-medium",
+    "figma.com": "fab fa-figma",
+    "slack.com": "fab fa-slack",
+    "snapchat.com": "fab fa-snapchat",
+    "pinterest.com": "fab fa-pinterest",
+    "dev.to": "fab fa-dev",
+    "dribbble.com": "fab fa-dribbble",
+    "mail.google.com": "fab fa-google",
+    "gmail.com": "fab fa-google"
+  };
 
-  // Ensure we have a valid domain to query favicon providers
-  let domain = lower.replace(/[^a-z0-9]/g, "") + ".com";
-  if (url) {
+  const getBrandIconFromHostname = (hostname) => {
+    if (!hostname) return null;
+    const host = hostname.replace(/^www\./i, "").toLowerCase();
+    if (hostnameFA[host]) return hostnameFA[host];
+    for (const domain of Object.keys(hostnameFA)) {
+      if (host.endsWith(`.${domain}`)) return hostnameFA[domain];
+    }
+    return null;
+  };
+
+  const lower = fieldName.toLowerCase();
+  const normalizedUrl = normalizeHttpUrl(url);
+
+  if (normalizedUrl) {
     try {
-      const normalized = url.startsWith("http") ? url : `https://${url}`;
-      domain = new URL(normalized).hostname.replace(/^www\./, "");
+      const hostname = new URL(normalizedUrl).hostname;
+      const hostIcon = getBrandIconFromHostname(hostname);
+      if (hostIcon) {
+        return `<i class="${hostIcon}" aria-hidden="true"></i>`;
+      }
     } catch (e) {}
   }
+  
+  if (knownFA[lower]) {
+    return `<i class="${knownFA[lower]}" aria-hidden="true"></i>`;
+  }
 
-  // Show shimmer placeholder, then swap to favicon once loaded
-  const shimId = `fav_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
-  setTimeout(() => {
-    const el = document.getElementById(shimId);
-    if (!el) return;
+  if (normalizedUrl && typeof chrome !== "undefined" && chrome.runtime && chrome.runtime.getURL) {
+    const faviconUrl = chrome.runtime.getURL(`_favicon/?pageUrl=${encodeURIComponent(normalizedUrl)}&size=32`);
+    return `<img class="favicon-img" src="${faviconUrl}" alt="" aria-hidden="true" loading="lazy" decoding="async">`;
+  }
 
-    const faviconSources = [
-      `https://icons.duckduckgo.com/ip3/${encodeURIComponent(domain)}.ico`
-    ];
-
-    const img = new Image();
-    img.className = "favicon-img";
-    img.onload = () => { if (el) el.replaceWith(img); };
-
-    let sourceIndex = 0;
-    const loadNextSource = () => {
-      if (sourceIndex >= faviconSources.length) {
-        if (el) el.outerHTML = '<i class="fas fa-link"></i>';
-        return;
-      }
-      img.src = faviconSources[sourceIndex++];
-    };
-
-    img.onerror = loadNextSource;
-    loadNextSource();
-  }, 10);
-  return `<span id="${shimId}" class="favicon-shimmer"></span>`;
+  return '<i class="fas fa-link" aria-hidden="true"></i>';
 };
 
 // ===== Auth State Listener =====
@@ -474,10 +523,30 @@ const renderAllFields = () => {
     if (fieldName === activeField) bubble.classList.add("active");
     bubble.style.animationDelay = `${index * 15}ms`;
     bubble.setAttribute("data-field-name", fieldName);
+    bubble.setAttribute("type", "button");
     
-    bubble.innerHTML = `${getIconHTML(fieldName, currentLinks[fieldName])} <span class="bubble-text">${fieldName}</span>`;
+    const hasLink = !!currentLinks[fieldName];
+    bubble.innerHTML = `${getIconHTML(fieldName, currentLinks[fieldName])} <span class="bubble-text">${fieldName}</span>${hasLink ? '<span class="bubble-copy-action" title="Copy (quick)" aria-hidden="true"><i class="fas fa-copy"></i></span>' : ''}`;
     
-    bubble.addEventListener("click", () => {
+    bubble.addEventListener("click", async (e) => {
+      if (e.target.closest(".bubble-copy-action")) {
+        e.preventDefault();
+        e.stopPropagation();
+        const url = currentLinks[fieldName] || "";
+        if (!url) {
+          showToast("No link to copy ❌");
+          return;
+        }
+        try {
+          await navigator.clipboard.writeText(url);
+          showToast("Copied ✓");
+          trackEvent('link_copied', { name: fieldName, source: 'pill' });
+        } catch {
+          showToast("Clipboard permission denied.");
+        }
+        return;
+      }
+
       activeField = fieldName;
       renderAllFields();
       trackEvent('link_selected', { name: fieldName });
@@ -514,6 +583,7 @@ const renderAllFields = () => {
     };
 
     container.addEventListener("pointerdown", (e) => {
+      if (e.target.closest(".bubble-copy-action")) return;
       const pill = e.target.closest(".bubble");
       if (!pill || !container.contains(pill)) return;
 
@@ -630,7 +700,7 @@ const renderAllFields = () => {
   if (pinnedFields.length > 0) {
     const groupEl = document.createElement("div");
     groupEl.classList.add("category-section");
-    groupEl.innerHTML = `<button class="category-header" disabled style="cursor: default;">
+    groupEl.innerHTML = `<button class="category-header category-header--static" disabled>
       <span><i class="fas fa-thumbtack"></i> Pinned</span>
     </button>`;
     
@@ -711,7 +781,8 @@ const renderAllFields = () => {
           <div class="empty-state-icon"><i class="fas fa-link"></i></div>
           <div class="empty-state-title">Your digital hub is a bit lonely…</div>
           <div class="empty-state-desc">Add your first link to start your empire.</div>
-          <button class="btn-add-link" style="margin-top: 20px;">
+          <div class="empty-state-hint">${getAddShortcutHintHTML()}</div>
+          <button class="btn-add-link empty-state-add-btn">
             <i class="fas fa-plus"></i> Add First Link
           </button>
         </div>`;
@@ -719,6 +790,8 @@ const renderAllFields = () => {
       activeFieldArea.innerHTML = "";
     }
   }
+
+  updateAddFabVisibility(false);
 };
 
 const renderActiveRow = (fieldName, fieldValue) => {
@@ -760,7 +833,7 @@ const renderActiveRow = (fieldName, fieldValue) => {
   inputGroup.appendChild(closeBtn);
 
   const inputWrapper = document.createElement("div");
-  inputWrapper.style.cssText = "flex:1; min-width:0; display:flex; flex-direction:column; gap:6px;";
+  inputWrapper.classList.add("field-input-wrapper");
   inputWrapper.appendChild(fieldLabel);
   inputWrapper.appendChild(inputGroup);
 
@@ -840,7 +913,7 @@ const renderActiveRow = (fieldName, fieldValue) => {
   const pinBtn = document.createElement("button");
   pinBtn.classList.add("btn-copy");
   pinBtn.innerHTML = isPinned
-    ? '<i class="fas fa-thumbtack" style="opacity:0.5"></i> Unpin'
+    ? '<i class="fas fa-thumbtack icon-dim"></i> Unpin'
     : '<i class="fas fa-thumbtack"></i> Pin';
   pinBtn.title = isPinned ? "Unpin" : "Pin";
   pinBtn.addEventListener("click", async () => {
@@ -961,7 +1034,13 @@ const handleAddClick = async () => {
   }
 };
 
-// Handle all 'Add Link' buttons (Header and Empty State) via delegation
+const isTypingTarget = (el) => {
+  if (!el) return false;
+  const tag = el.tagName;
+  return tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT" || el.isContentEditable;
+};
+
+// Handle all 'Add Link' buttons (FAB and Empty State) via delegation
 document.addEventListener("click", (e) => {
   if (e.target.closest(".btn-add-link")) {
     handleAddClick();
@@ -969,6 +1048,16 @@ document.addEventListener("click", (e) => {
   if (e.target.closest("#saveTabBtn")) {
     handleSaveTabBtnClick();
   }
+});
+
+document.addEventListener("keydown", (e) => {
+  const isShortcut = e.altKey && !e.ctrlKey && !e.metaKey && (e.key === "n" || e.key === "N");
+  if (!isShortcut) return;
+  if (isTypingTarget(document.activeElement)) return;
+  if (document.querySelector(".modal-overlay.show")) return;
+
+  e.preventDefault();
+  handleAddClick();
 });
 
 const handleSaveTabBtnClick = async () => {
@@ -1047,6 +1136,7 @@ const showLoading = (show) => {
       linkCountBadge.style.display = "none";
     }
   }
+  updateAddFabVisibility(show);
 };
 
 let toastTimeout;
