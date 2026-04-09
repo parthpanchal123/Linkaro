@@ -1,7 +1,7 @@
 /**
  * Firestore CRUD operations for Linkaro — Modular SDK
  */
-import { doc, getDoc, setDoc, updateDoc, arrayUnion, arrayRemove, deleteField, FieldPath } from "firebase/firestore";
+import { doc, getDoc, setDoc, updateDoc, arrayUnion, arrayRemove, deleteField, FieldPath, increment, serverTimestamp } from "firebase/firestore";
 import { db } from "./firebase-init.js";
 
 export const initUserData = async (userId) => {
@@ -48,4 +48,37 @@ export const updateFieldMetadata = async (userId, fieldName, metadataUpdates) =>
 export const saveReorderedFields = async (userId, newFieldsArray) => {
   const userRef = doc(db, "users", userId);
   await updateDoc(userRef, { fields: newFieldsArray, hasCustomOrder: true });
+};
+
+export const markUserActiveToday = async (userId) => {
+  const day = new Date().toISOString().slice(0, 10);
+  const activityRef = doc(db, "users", userId, "activity", day);
+  await setDoc(activityRef, { lastSeenAt: serverTimestamp() }, { merge: true });
+};
+
+export const incrementUsageCounter = async (userId, counterName) => {
+  if (!counterName) return;
+  const usageRef = doc(db, "users", userId, "usage", "summary");
+  await setDoc(
+    usageRef,
+    {
+      counters: { [counterName]: increment(1) },
+      updatedAt: serverTimestamp(),
+    },
+    { merge: true }
+  );
+};
+
+export const updateLinkStats = async (userId, totalLinks) => {
+  const userRef = doc(db, "users", userId);
+  await setDoc(
+    userRef,
+    {
+      stats: {
+        totalLinks: Number.isFinite(totalLinks) ? totalLinks : 0,
+        updatedAt: serverTimestamp(),
+      },
+    },
+    { merge: true }
+  );
 };

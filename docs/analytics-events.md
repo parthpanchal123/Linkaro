@@ -66,3 +66,15 @@ Most app events include these auto-attached fields:
   - `setAnalyticsConsent(true|false)`
   - `getAnalyticsConsent()`
 - Storage key: `linkaro_analytics_consent` (`granted` | `denied`)
+
+## Firestore Aggregate Counters
+To support baseline product metrics even when telemetry is blocked by privacy signals, Linkaro also updates Firestore counters:
+
+- `users/{uid}/usage/summary`
+  - `counters.<event_name>` incremented for selected product events
+  - `updatedAt`
+- `users/{uid}/activity/{YYYY-MM-DD}`
+  - `lastSeenAt` for daily active tracking
+- `users/{uid}.stats`
+  - `totalLinks`
+  - `updatedAt`

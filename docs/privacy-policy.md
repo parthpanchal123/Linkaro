@@ -25,6 +25,7 @@ Linkaro is a browser extension that helps users save and organize links. This po
 - Sensitive values (for example URLs, emails, auth tokens, passwords, secrets) are excluded from analytics payloads.
 - Global Privacy Control (GPC) and Do Not Track (DNT) signals are respected.
 - Analytics can be controlled via extension runtime setting key `linkaro_analytics_consent` (`granted` or `denied`).
+- Users can toggle anonymous analytics from the extension UI.
 
 ## Data Sharing and Processors
 - Firebase Authentication and Cloud Firestore (Google) are used as infrastructure providers to support authentication and data storage.

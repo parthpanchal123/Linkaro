@@ -12,6 +12,9 @@ import {
   deleteFieldFromFirestore,
   updateFieldMetadata,
   saveReorderedFields,
+  markUserActiveToday,
+  incrementUsageCounter,
+  updateLinkStats,
 } from "./firebase-db.js";
 import { trackEvent, setAnalyticsConsent, getAnalyticsConsent } from "./analytics.js";
 
@@ -25,6 +28,9 @@ window.addFieldToFirestore = addFieldToFirestore;
 window.deleteFieldFromFirestore = deleteFieldFromFirestore;
 window.updateFieldMetadata = updateFieldMetadata;
 window.saveReorderedFields = saveReorderedFields;
+window.markUserActiveToday = markUserActiveToday;
+window.incrementUsageCounter = incrementUsageCounter;
+window.updateLinkStats = updateLinkStats;
 window.trackEvent = trackEvent;
 window.setAnalyticsConsent = setAnalyticsConsent;
 window.getAnalyticsConsent = getAnalyticsConsent;
