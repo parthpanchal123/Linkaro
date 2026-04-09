@@ -9,6 +9,7 @@ import {
   GoogleAuthProvider,
   signInWithCredential,
 } from "firebase/auth/web-extension";
+import { trackEvent } from "./analytics.js";
 
 const authForm = document.getElementById("authForm");
 const emailInput = document.getElementById("emailInput");
@@ -29,7 +30,10 @@ const safeRedirect = (page) => {
 
 // If already logged in, go straight to main page
 onAuthStateChanged(auth, (user) => {
-  if (user) safeRedirect("link_index.html");
+  if (user) {
+    trackEvent("auth_session_active", { provider: user.providerData?.[0]?.providerId || "unknown" });
+    safeRedirect("link_index.html");
+  }
 });
 
 // Toggle between Login <-> Sign Up
@@ -57,11 +61,14 @@ authForm.addEventListener("submit", async (e) => {
   try {
     if (isSignUp) {
       await createUserWithEmailAndPassword(auth, email, password);
+      trackEvent("auth_signup_success", { method: "email" });
     } else {
       await signInWithEmailAndPassword(auth, email, password);
+      trackEvent("auth_login_success", { method: "email" });
     }
     // onAuthStateChanged handles redirect
   } catch (error) {
+    trackEvent("auth_login_failed", { method: "email", code: error?.code || "unknown" });
     errorMsg.textContent = getFriendlyError(error.code, error.message);
     setLoading(false);
   }
@@ -95,8 +102,10 @@ googleBtn.addEventListener("click", async () => {
       try {
         const credential = GoogleAuthProvider.credential(null, token);
         await signInWithCredential(auth, credential);
+        trackEvent("auth_login_success", { method: "google" });
         // onAuthStateChanged handles redirect
       } catch (error) {
+        trackEvent("auth_login_failed", { method: "google", code: error?.code || "unknown" });
         errorMsg.textContent = getFriendlyError(error.code, error.message);
         setGoogleLoading(false);
       }

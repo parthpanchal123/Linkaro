@@ -17,6 +17,11 @@ const firebaseConfig = {
   measurementId: __FIREBASE_MEASUREMENT_ID__,
 };
 
+export const analyticsConfig = {
+  measurementId: __FIREBASE_MEASUREMENT_ID__,
+  apiSecret: typeof __FIREBASE_GA_SECRET__ !== "undefined" ? __FIREBASE_GA_SECRET__ : "",
+};
+
 const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
 export const db = getFirestore(app);

@@ -22,6 +22,7 @@ if (existsSync(configPath)) {
     __FIREBASE_MESSAGING_SENDER_ID__: extract("messagingSenderId"),
     __FIREBASE_APP_ID__: extract("appId"),
     __FIREBASE_MEASUREMENT_ID__: extract("measurementId"),
+    __FIREBASE_GA_SECRET__: extract("gaApiSecret"),
   };
 }
 

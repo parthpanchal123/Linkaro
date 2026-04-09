@@ -13,7 +13,7 @@ import {
   updateFieldMetadata,
   saveReorderedFields,
 } from "./firebase-db.js";
-import { trackEvent } from "./analytics.js";
+import { trackEvent, setAnalyticsConsent, getAnalyticsConsent } from "./analytics.js";
 
 // Expose everything as globals so the existing app.js code works without any changes
 window.auth = auth;
@@ -26,3 +26,5 @@ window.deleteFieldFromFirestore = deleteFieldFromFirestore;
 window.updateFieldMetadata = updateFieldMetadata;
 window.saveReorderedFields = saveReorderedFields;
 window.trackEvent = trackEvent;
+window.setAnalyticsConsent = setAnalyticsConsent;
+window.getAnalyticsConsent = getAnalyticsConsent;

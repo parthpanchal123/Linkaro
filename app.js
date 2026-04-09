@@ -45,6 +45,13 @@ const truncateText = (text, maxLength = 32) => {
   return text.length > maxLength ? `${text.slice(0, maxLength - 1)}…` : text;
 };
 
+const escapeHtml = (value = "") => String(value)
+  .replace(/&/g, "&amp;")
+  .replace(/</g, "&lt;")
+  .replace(/>/g, "&gt;")
+  .replace(/"/g, "&quot;")
+  .replace(/'/g, "&#39;");
+
 // DOM References
 const bubblesArea = document.getElementById("bubblesArea");
 const activeFieldArea = document.getElementById("activeFieldArea");
@@ -69,6 +76,26 @@ const ADD_SHORTCUT_TEXT = `${ADD_SHORTCUT_KEY} + N`;
 
 const getAddShortcutHintHTML = () => `Tip: Press <kbd>${ADD_SHORTCUT_KEY}</kbd> + <kbd>N</kbd> to add quickly`;
 
+const getCurrentMetrics = () => {
+  const totalLinks = currentFields.length;
+  const pinnedLinks = Object.values(currentMetadata).filter((m) => m?.isPinned).length;
+  const categories = new Set(
+    Object.values(currentMetadata)
+      .map((m) => m?.category || "Uncategorized")
+      .filter(Boolean)
+  );
+  return {
+    total_links: totalLinks,
+    pinned_links: pinnedLinks,
+    categories_count: categories.size,
+    has_custom_order: !!hasCustomOrder,
+  };
+};
+
+const trackProductEvent = (name, params = {}) => {
+  trackEvent(name, { ...getCurrentMetrics(), ...params });
+};
+
 const confirmModal = document.getElementById("confirmModal");
 const confirmModalTitle = document.getElementById("confirmModalTitle");
 const confirmModalDesc = document.getElementById("confirmModalDesc");
@@ -86,7 +113,7 @@ if (themeToggleBtn) {
     localStorage.setItem('theme', newTheme);
     
     themeToggleBtn.innerHTML = newTheme === 'dark' ? '<i class="fas fa-sun" aria-hidden="true"></i>' : '<i class="fas fa-moon" aria-hidden="true"></i>';
-    trackEvent('theme_toggled', { theme: newTheme });
+    trackProductEvent('theme_toggled', { theme: newTheme });
   });
 }
 
@@ -150,7 +177,20 @@ if (searchInput) {
     // Tracking search
     clearTimeout(searchTimeout);
     searchTimeout = setTimeout(() => {
-      if (searchQuery.length > 1) trackEvent('search_performed', { query: searchQuery });
+      if (searchQuery.length > 1) {
+        const resultCount = currentFields.filter((fieldName) => {
+          const matchName = fieldName.toLowerCase().includes(searchQuery);
+          const url = (currentLinks[fieldName] || "").toLowerCase();
+          const matchUrl = url.includes(searchQuery);
+          const cat = (currentMetadata[fieldName]?.category || "Uncategorized").toLowerCase();
+          const matchCat = cat.includes(searchQuery);
+          return matchName || matchUrl || matchCat;
+        }).length;
+        trackProductEvent('search_performed', {
+          query_length: searchQuery.length,
+          results_count: resultCount,
+        });
+      }
     }, 1000);
   });
 }
@@ -438,7 +478,7 @@ window.onAuthStateChanged(window.auth, async (user) => {
     currentUser = user;
     userEmailEl.textContent = user.email;
     showLoading(true);
-    trackEvent('login', { method: 'google', email: user.email });
+    trackProductEvent('session_started', { surface: 'popup' });
 
     try {
       const data = await initUserData(user.uid);
@@ -526,7 +566,8 @@ const renderAllFields = () => {
     bubble.setAttribute("type", "button");
     
     const hasLink = !!currentLinks[fieldName];
-    bubble.innerHTML = `${getIconHTML(fieldName, currentLinks[fieldName])} <span class="bubble-text">${fieldName}</span>${hasLink ? '<span class="bubble-copy-action" title="Copy (quick)" aria-hidden="true"><i class="fas fa-copy"></i></span>' : ''}`;
+    const safeFieldName = escapeHtml(fieldName);
+    bubble.innerHTML = `${getIconHTML(fieldName, currentLinks[fieldName])} <span class="bubble-text">${safeFieldName}</span>${hasLink ? '<span class="bubble-copy-action" title="Copy (quick)" aria-hidden="true"><i class="fas fa-copy"></i></span>' : ''}`;
     
     bubble.addEventListener("click", async (e) => {
       if (e.target.closest(".bubble-copy-action")) {
@@ -540,7 +581,7 @@ const renderAllFields = () => {
         try {
           await navigator.clipboard.writeText(url);
           showToast("Copied ✓");
-          trackEvent('link_copied', { name: fieldName, source: 'pill' });
+          trackProductEvent('link_copied', { source: 'pill' });
         } catch {
           showToast("Clipboard permission denied.");
         }
@@ -549,7 +590,7 @@ const renderAllFields = () => {
 
       activeField = fieldName;
       renderAllFields();
-      trackEvent('link_selected', { name: fieldName });
+      trackProductEvent('link_selected');
     });
     return bubble;
   };
@@ -674,6 +715,7 @@ const renderAllFields = () => {
           currentFields = fullOrder;
           await saveReorderedFields(currentUser.uid, currentFields);
           hasCustomOrder = true;
+          trackProductEvent('links_reordered', { in_pinned: categoryName === 'Pinned' });
 
           const fieldName = dragging.getAttribute("data-field-name");
           const newCategory = container.getAttribute("data-category");
@@ -724,10 +766,11 @@ const renderAllFields = () => {
     groupEl.classList.add("category-section");
     const isOpen = searchQuery ? true : isCategoryOpen(cat);
     
+    const safeCat = escapeHtml(cat);
     // Header for categories
     const headerHtml = `
       <button class="category-header ${searchQuery ? 'search-mode' : ''}">
-        <span>${cat}</span>
+        <span>${safeCat}</span>
         ${searchQuery ? '' : `<i class="fas fa-chevron-${isOpen ? 'down' : 'right'}"></i>`}
       </button>
     `;
@@ -769,11 +812,12 @@ const renderAllFields = () => {
     renderActiveRow(activeField, currentLinks[activeField] || "");
   } else {
     if (searchQuery && displayFields.length === 0) {
+      const safeSearchQuery = escapeHtml(searchQuery);
       activeFieldArea.innerHTML = `
         <div class="empty-state">
           <div class="empty-state-icon"><i class="fas fa-search"></i></div>
           <div class="empty-state-title">No matches found</div>
-          <div class="empty-state-desc">No links match "${searchQuery}".<br>Try a different search.</div>
+          <div class="empty-state-desc">No links match "${safeSearchQuery}".<br>Try a different search.</div>
         </div>`;
     } else if (currentFields.length === 0) {
       activeFieldArea.innerHTML = `
@@ -825,7 +869,7 @@ const renderActiveRow = (fieldName, fieldValue) => {
   const fieldLabel = document.createElement("div");
   fieldLabel.classList.add("field-label");
   fieldLabel.title = fieldName;   // full name on hover tooltip
-  fieldLabel.innerHTML = `${getIconHTML(fieldName, fieldValue)}<span>${fieldName}</span>`;
+  fieldLabel.innerHTML = `${getIconHTML(fieldName, fieldValue)}<span>${escapeHtml(fieldName)}</span>`;
 
   const inputGroup = document.createElement("div");
   inputGroup.classList.add("field-input-group");
@@ -858,9 +902,9 @@ const renderActiveRow = (fieldName, fieldValue) => {
       await saveLinkToFirestore(currentUser.uid, fieldName, url);
       currentLinks[fieldName] = url;
       fieldValue = url;
-      fieldLabel.innerHTML = `${getIconHTML(fieldName, url)}<span>${fieldName}</span>`;
+      fieldLabel.innerHTML = `${getIconHTML(fieldName, url)}<span>${escapeHtml(fieldName)}</span>`;
       showToast(fieldName + " saved ✓");
-      trackEvent('link_saved', { name: fieldName });
+      trackProductEvent('link_saved', { source: 'editor' });
     } catch {
       showToast("Failed to save. Try again.");
       saveBtn.disabled = false;
@@ -880,7 +924,7 @@ const renderActiveRow = (fieldName, fieldValue) => {
     try {
       await navigator.clipboard.writeText(url);
       showToast("Copied ✓");
-      trackEvent('link_copied', { name: fieldName });
+      trackProductEvent('link_copied', { source: 'editor' });
     } catch { showToast("Clipboard permission denied."); }
   });
 
@@ -899,7 +943,7 @@ const renderActiveRow = (fieldName, fieldValue) => {
       delete currentLinks[fieldName];
       activeField = null;
       renderAllFields();
-      trackEvent('link_deleted', { name: fieldName });
+      trackProductEvent('link_deleted');
       showToast(`${truncateText(fieldName)} deleted`);
     } catch {
       showToast("Failed to delete. Try again.");
@@ -929,6 +973,7 @@ const renderActiveRow = (fieldName, fieldValue) => {
       await updateFieldMetadata(currentUser.uid, fieldName, { isPinned: newState });
       renderAllFields();
       showToast(newState ? "Pinned 📌" : "Unpinned");
+      trackProductEvent('pin_toggled', { pinned: newState });
     } catch {
       showToast("Failed to pin. Try again.");
       currentMetadata[fieldName].isPinned = oldState;
@@ -942,8 +987,17 @@ const renderActiveRow = (fieldName, fieldValue) => {
   categorySelect.setAttribute("aria-label", `Category for ${fieldName}`);
   const categories = [...new Set(Object.values(currentMetadata).map(m => m.category).filter(Boolean))];
   if (!categories.includes("Uncategorized")) categories.push("Uncategorized");
-  categorySelect.innerHTML = categories.map(cat => `<option value="${cat}">${cat}</option>`).join("");
-  categorySelect.innerHTML += `<option value="__new__">+ New Category…</option>`;
+  categorySelect.innerHTML = "";
+  categories.forEach((cat) => {
+    const option = document.createElement("option");
+    option.value = cat;
+    option.textContent = cat;
+    categorySelect.appendChild(option);
+  });
+  const newCategoryOption = document.createElement("option");
+  newCategoryOption.value = "__new__";
+  newCategoryOption.textContent = "+ New Category…";
+  categorySelect.appendChild(newCategoryOption);
   categorySelect.value = meta.category || "Uncategorized";
 
   categorySelect.addEventListener("change", async (e) => {
@@ -960,6 +1014,7 @@ const renderActiveRow = (fieldName, fieldValue) => {
       await updateFieldMetadata(currentUser.uid, fieldName, { category: newCat });
       renderAllFields();
       showToast(`Moved to ${newCat}`);
+      trackProductEvent('category_changed');
     } catch {
       showToast("Failed to move category.");
       currentMetadata[fieldName].category = oldCat;
@@ -988,6 +1043,7 @@ const renderActiveRow = (fieldName, fieldValue) => {
 
 // ===== Add New Field =====
 const handleAddClick = async () => {
+  trackProductEvent('add_link_modal_opened');
   const result = await showPromptModal();
   if (!result || !result.name || !result.name.trim()) return;
 
@@ -1028,9 +1084,10 @@ const handleAddClick = async () => {
 
     renderAllFields();
     showToast(fieldName + " added ✓");
-    trackEvent('link_added', { name: fieldName, has_url: !!fieldUrl });
+    trackProductEvent('link_added', { has_url: !!fieldUrl, source: 'manual' });
   } catch (error) {
     showToast("Failed to add field. Try again.");
+    trackProductEvent('link_add_failed');
   }
 };
 
@@ -1057,6 +1114,7 @@ document.addEventListener("keydown", (e) => {
   if (document.querySelector(".modal-overlay.show")) return;
 
   e.preventDefault();
+  trackProductEvent('add_shortcut_used');
   handleAddClick();
 });
 
@@ -1073,6 +1131,7 @@ const handleSaveTabBtnClick = async () => {
   saveTabBtn.disabled = true;
 
   try {
+    trackProductEvent('save_tab_clicked');
     const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
     
     if (!tab || !tab.url) {
@@ -1092,6 +1151,7 @@ const handleSaveTabBtnClick = async () => {
       showToast(`"${fieldName}" is already saved!`);
       activeField = null;
       renderAllFields();
+      trackProductEvent('save_tab_duplicate');
     } else {
       await addFieldToFirestore(currentUser.uid, fieldName);
       currentFields.push(fieldName);
@@ -1101,11 +1161,12 @@ const handleSaveTabBtnClick = async () => {
       activeField = null;
       renderAllFields();
       showToast(`${fieldName} saved! ✓`);
-      trackEvent('link_saved_auto', { name: fieldName });
+      trackProductEvent('link_saved', { source: 'save_tab' });
     }
   } catch (error) {
     console.error(error);
     showToast("Failed to save. Try again.");
+    trackProductEvent('save_tab_failed');
   } finally {
     saveTabBtn.innerHTML = originalHTML;
     saveTabBtn.style.opacity = "1";
@@ -1115,7 +1176,7 @@ const handleSaveTabBtnClick = async () => {
 
 // ===== Sign Out =====
 signOutBtn.addEventListener("click", () => {
-  trackEvent('logout');
+  trackProductEvent('session_ended');
   window.signOut(); // Provided by firebase-bundle via app-entry.js
 });
 
