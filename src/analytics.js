@@ -83,7 +83,7 @@ export const trackEvent = async (name, params = {}) => {
 
   try {
     const clientId = await getClientId();
-    const url = `https://www.google-analytics.com/mp/collect?measurement_id=${encodeURIComponent(measurementId)}&api_secret=${encodeURIComponent(apiSecret)}`;
+    const baseUrl = `https://www.google-analytics.com/mp/collect?measurement_id=${encodeURIComponent(measurementId)}&api_secret=${encodeURIComponent(apiSecret)}`;
     const payload = {
       client_id: clientId,
       events: [{
@@ -95,11 +95,18 @@ export const trackEvent = async (name, params = {}) => {
       }],
     };
 
-    await fetch(url, {
+    const body = JSON.stringify(payload);
+
+    if (navigator.sendBeacon) {
+      const blob = new Blob([body], { type: "text/plain;charset=UTF-8" });
+      const sent = navigator.sendBeacon(baseUrl, blob);
+      if (sent) return;
+    }
+
+    await fetch(baseUrl, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-      keepalive: true,
+      body,
     });
   } catch (e) {
     // Silent fail: analytics must never break user flows
