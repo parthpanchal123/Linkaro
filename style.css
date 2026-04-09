@@ -1377,14 +1377,6 @@ button.loading #googleBtnContent {
   color: var(--text-primary);
 }
 
-.analytics-toggle.is-off {
-  color: #64748b;
-  border-color: rgba(100, 116, 139, 0.45);
-}
-
-.analytics-toggle.is-off i {
-  opacity: 0.7;
-}
 
 /* ===== Dark Mode Styles ===== */
 :root[data-theme="dark"] {
@@ -1511,11 +1503,6 @@ button.loading #googleBtnContent {
   background: rgba(255, 255, 255, 0.1);
 }
 
-:root[data-theme="dark"] .analytics-toggle.is-off {
-  color: #94a3b8;
-  border-color: rgba(148, 163, 184, 0.28);
-  background: rgba(15, 23, 42, 0.55);
-}
 
 :root[data-theme="dark"] input:focus-visible {
   background: rgba(30, 41, 59, 0.8) !important;

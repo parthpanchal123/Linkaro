@@ -81,9 +81,6 @@ export const trackEvent = async (name, params = {}) => {
   const apiSecret = analyticsConfig?.apiSecret || "";
   if (!measurementId || !apiSecret || apiSecret === "YOUR_API_SECRET_HERE") return;
 
-  const consent = await getAnalyticsConsent();
-  if (!consent) return;
-
   try {
     const clientId = await getClientId();
     const url = `https://www.google-analytics.com/mp/collect?measurement_id=${encodeURIComponent(measurementId)}&api_secret=${encodeURIComponent(apiSecret)}`;

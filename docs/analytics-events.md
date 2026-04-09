@@ -4,11 +4,11 @@ Last updated: 2026-04-09
 
 This document defines product analytics events emitted by Linkaro.
 
-## Privacy Rules
-- Do not send direct identifiers (email, uid, token, secret, password).
-- Do not send raw URLs or freeform user text.
-- Keep event params small, typed, and non-sensitive.
-- Respect consent, DNT, and GPC signals.
+ ## Privacy Rules
+- No direct identifiers are sent (email, uid, token, password, secret).
+- No raw URLs or freeform user text are sent.
+- Event params are small, typed, and non-sensitive.
+- Search query text is never transmitted — only query length and result count.
 
 ## Common Parameters
 Most app events include these auto-attached fields:
@@ -61,14 +61,8 @@ Most app events include these auto-attached fields:
 - `add_shortcut_used`
 - `link_add_failed`
 
-## Consent Controls
-- Runtime helpers are exposed globally:
-  - `setAnalyticsConsent(true|false)`
-  - `getAnalyticsConsent()`
-- Storage key: `linkaro_analytics_consent` (`granted` | `denied`)
-
 ## Firestore Aggregate Counters
-To support baseline product metrics even when telemetry is blocked by privacy signals, Linkaro also updates Firestore counters:
+For baseline product metrics, Linkaro updates Firestore counters:
 
 - `users/{uid}/usage/summary`
   - `counters.<event_name>` incremented for selected product events

@@ -69,19 +69,11 @@ const instructionText = document.getElementById("instructionText");
 const linkCountBadge = document.querySelector(".link-count");
 const addFabBtn = document.getElementById("addFabBtn");
 const infoShortcutHintEl = document.getElementById("infoShortcutHint");
-const analyticsToggleBtn = document.getElementById("analyticsToggleBtn");
-
 const IS_MAC = /Mac|iPhone|iPad|iPod/i.test(navigator.platform || "");
 const ADD_SHORTCUT_KEY = IS_MAC ? "Option" : "Alt";
 const ADD_SHORTCUT_TEXT = `${ADD_SHORTCUT_KEY} + N`;
 
 const getAddShortcutHintHTML = () => `Tip: Press <kbd>${ADD_SHORTCUT_KEY}</kbd> + <kbd>N</kbd> to add quickly`;
-
-const isPrivacySignalBlockingAnalytics = () => {
-  const gpc = typeof navigator !== "undefined" && navigator.globalPrivacyControl === true;
-  const dnt = typeof navigator !== "undefined" && ["1", "yes"].includes(String(navigator.doNotTrack || "").toLowerCase());
-  return gpc || dnt;
-};
 
 const getCurrentMetrics = () => {
   const totalLinks = currentFields.length;
@@ -117,37 +109,6 @@ const trackProductEvent = (name, params = {}) => {
   }
 };
 
-const updateAnalyticsToggleUI = (enabled) => {
-  if (!analyticsToggleBtn) return;
-  analyticsToggleBtn.classList.toggle("is-off", !enabled);
-  analyticsToggleBtn.setAttribute("aria-pressed", enabled ? "true" : "false");
-  const label = enabled ? "Anonymous analytics: On" : "Anonymous analytics: Off";
-  analyticsToggleBtn.title = label;
-  analyticsToggleBtn.setAttribute("aria-label", label);
-};
-
-const initAnalyticsToggle = async () => {
-  if (!analyticsToggleBtn || typeof getAnalyticsConsent !== "function") return;
-  const enabled = await getAnalyticsConsent();
-  updateAnalyticsToggleUI(enabled);
-
-  if (isPrivacySignalBlockingAnalytics()) {
-    analyticsToggleBtn.disabled = true;
-    analyticsToggleBtn.title = "Anonymous analytics blocked by browser privacy settings";
-    analyticsToggleBtn.setAttribute("aria-label", "Anonymous analytics blocked by browser privacy settings");
-    return;
-  }
-
-  analyticsToggleBtn.addEventListener("click", async () => {
-    if (typeof setAnalyticsConsent !== "function" || typeof getAnalyticsConsent !== "function") return;
-    const currentlyEnabled = await getAnalyticsConsent();
-    const nextEnabled = !currentlyEnabled;
-    await setAnalyticsConsent(nextEnabled);
-    updateAnalyticsToggleUI(nextEnabled);
-    showToast(nextEnabled ? "Anonymous analytics enabled" : "Anonymous analytics disabled");
-  });
-};
-
 const confirmModal = document.getElementById("confirmModal");
 const confirmModalTitle = document.getElementById("confirmModalTitle");
 const confirmModalDesc = document.getElementById("confirmModalDesc");
@@ -177,8 +138,6 @@ if (addFabBtn) {
   addFabBtn.title = `Add New Link (${ADD_SHORTCUT_TEXT})`;
   addFabBtn.setAttribute("aria-label", `Add New Link (${ADD_SHORTCUT_TEXT})`);
 }
-
-initAnalyticsToggle().catch(() => {});
 
 let currentUser = null;
 let currentFields = [];
