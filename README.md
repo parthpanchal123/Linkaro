@@ -12,7 +12,7 @@
 - 🔐 **Secure Auth:** Seamless login with **Google OAuth**.
 - 🌓 **Adaptive UI:** Fully responsive design with **Dark/Light Mode** support.
 - 🔍 **Intelligent Search:** Instantly filter through your links by name or URL.
-- 🖼️ **Dynamic Favicons:** Automatic brand icon fetching for a rich visual experience.
+- 🖼️ **Dynamic Favicons:** Brand-aware icons with Chrome favicon fallback for visual consistency.
 - ⚡ **Quick Copy:** One-click clipboard functionality for effortless sharing.
 - 🛠️ **Smart Extraction:** Automatically identifies and labels links during entry.
 
@@ -24,7 +24,7 @@
 - **Storage:** Firebase Firestore
 - **Identity:** Firebase Auth (Google Provider)
 - **Extension API:** Manifest V3
-- **Icons:** FontAwesome 6+, Google Favicon API
+- **Icons:** Local Font Awesome assets + Chrome favicon endpoint
 
 ---
 
